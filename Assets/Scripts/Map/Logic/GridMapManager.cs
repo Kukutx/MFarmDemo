@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
-//using MFarm.CropPlant;
+using MFarm.CropPlant;
 //using MFarm.Save;
 
 /// <summary>
@@ -24,7 +24,7 @@ namespace MFarm.Map
         ////定义一个字典来保存格子 （场景名字+格子坐标对应的瓦片信息）
         private Dictionary<string, TileDetails> tileDetailesDict = new Dictionary<string, TileDetails>();
         ////记录场景是否第一次加载
-        //private Dictionary<string, bool> firstLoadDic = new Dictionary<string, bool>();
+        private Dictionary<string, bool> firstLoadDic = new Dictionary<string, bool>();
         private Grid currentGrid;       // 当前网格
 
         ////杂草列表
@@ -38,7 +38,7 @@ namespace MFarm.Map
         {
             foreach (var mapData in mapDataList)
             {
-                //firstLoadDic.Add(mapData.sceneName, true);//所有的场景都是第一次加载,加载场景之后就把它改为False
+                firstLoadDic.Add(mapData.sceneName, true);//所有的场景都是第一次加载,加载场景之后就把它改为False
                 InitTileDetailsDict(mapData);       // 初始化字典
             }
             //ISaveable saveable = this;
@@ -50,7 +50,7 @@ namespace MFarm.Map
             EventHandler.ExecuteActionAfterAnimation += OnExecuteActionAfterAnimation;
             EventHandler.AfterSceneLoadedEvent += OnAfterSceneLoadedEvent;
             EventHandler.GameDayEvent += OnGameDayEvent;
-            //EventHandler.RefreshCurrentMap += RefreshMap;
+            EventHandler.RefreshCurrentMap += RefreshMap;
         }
 
         private void OnDisable()
@@ -58,7 +58,7 @@ namespace MFarm.Map
             EventHandler.ExecuteActionAfterAnimation -= OnExecuteActionAfterAnimation;
             EventHandler.AfterSceneLoadedEvent -= OnAfterSceneLoadedEvent;
             EventHandler.GameDayEvent -= OnGameDayEvent;
-            //EventHandler.RefreshCurrentMap -= RefreshMap;
+            EventHandler.RefreshCurrentMap -= RefreshMap;
         }
 
         /// <summary>
@@ -141,18 +141,20 @@ namespace MFarm.Map
             var currentTile = GetTileDetailsOnMousePosition(mouseGridPos);//返回鼠标所指瓦片
             if (currentTile != null)//如果当前瓦片信息不为null
             {
-                //Crop currentCrop = GetCropObject(mouseWorldPos);
+                Crop currentCrop = GetCropObject(mouseWorldPos);
                 //WORKFLOW:物品使用实际功能
                 switch (itemDetails.itemType)
                 {
-                    //case ItemType.Seed:
-                    //    EventHandler.CallPlantSeedEvent(itemDetails.itemID, currentTile);
-                    //    EventHandler.CallDropItemEvent(itemDetails.itemID, mouseWorldPos, itemDetails.itemType);
-                    //    EventHandler.CallPlaySoundEvent(SoundName.Plant);
-                    //    break;
+                    case ItemType.Seed:
+                        EventHandler.CallPlantSeedEvent(itemDetails.itemID, currentTile);   // 种植事件
+                        EventHandler.CallDropItemEvent(itemDetails.itemID, mouseWorldPos, itemDetails.itemType);  // 当种植一个种子的时候顺便在背包减少种植的那个种子
+                        //EventHandler.CallPlaySoundEvent(SoundName.Plant);
+                        break;
+
                     case ItemType.Commodity:
                         EventHandler.CallDropItemEvent(itemDetails.itemID, mouseWorldPos, itemDetails.itemType);//复制一个商品到鼠标位置
                         break;
+
                     case ItemType.HoeTool:          // 已经挖了
                         SetDigGround(currentTile);
                         currentTile.daysSinceDug = 0;//从现在开始这个坑儿被挖了
@@ -169,15 +171,16 @@ namespace MFarm.Map
                         //EventHandler.CallPlaySoundEvent(SoundName.Water);
                         break;
 
-                    //case ItemType.BreakTool:
-                    //case ItemType.ChopTool:
-                    //    //执行收割方法
-                    //    currentCrop?.ProcessToolAction(itemDetails, currentCrop.tileDetails);
-                    //    break;
-                    //case ItemType.CollectTool:
-                    //    //执行收割方法
-                    //    currentCrop.ProcessToolAction(itemDetails, currentTile);
-                    //    break;
+                    case ItemType.BreakTool:
+                    case ItemType.ChopTool:
+                        //执行收割方法
+                        currentCrop?.ProcessToolAction(itemDetails, currentCrop.tileDetails);
+                        break;
+
+                    case ItemType.CollectTool:
+                        //执行收割方法
+                        currentCrop.ProcessToolAction(itemDetails, currentTile);
+                        break;
                     //case ItemType.ReapTool:
                     //    var reapCount = 0;
                     //    for (int i = 0; i < itemsInRadius.Count; i++)
@@ -193,6 +196,7 @@ namespace MFarm.Map
                     //    }
                     //    EventHandler.CallPlaySoundEvent(SoundName.Reap);
                     //    break;
+
                     //case ItemType.Furniture:
                     //    //在地图上生成物品 ItemManager
                     //    //移除当前物品(图纸) InventoryManager
@@ -235,9 +239,7 @@ namespace MFarm.Map
                     tile.Value.growthDays++;
                 }
             }
-
-
-            RefreshMap();  // 需要注释
+            RefreshMap(); 
         }
 
         private void OnAfterSceneLoadedEvent()
@@ -248,39 +250,40 @@ namespace MFarm.Map
 
             DisplayMap(SceneManager.GetActiveScene().name);
 
-            //if (firstLoadDic[SceneManager.GetActiveScene().name])
-            //{
-            //    //预先生成农作物
-            //    EventHandler.CallGenerateCropEvent();
-            //    firstLoadDic[SceneManager.GetActiveScene().name] = false;//将当前场景的是否是第一次激活状态改为false
-            //}
+            // 在场景刷新销毁物体前先预先生成我指定的crop物体(果树)
+            if (firstLoadDic[SceneManager.GetActiveScene().name])       // 先更新这个不然CropTree会刷新不出来
+            {
+                //预先生成农作物
+                EventHandler.CallGenerateCropEvent();
+                firstLoadDic[SceneManager.GetActiveScene().name] = false;//将当前场景的是否是第一次激活状态改为false
+            }
             RefreshMap();
         }
 
-        ///// <summary>
-        ///// 鼠标点击返回成熟的植物果实Object
-        ///// </summary>
-        ///// <param name="mouseWorldPos">鼠标点击位置</param>
-        ///// <returns></returns>
-        //public Crop GetCropObject(Vector3 mouseWorldPos)
-        //{
-        //    Collider2D[] colliders = Physics2D.OverlapPointAll(mouseWorldPos);//Physics2D.OverlapPointAll:返回某个点周围的所有碰撞体放到一个数组中
-        //    Crop currentCrop = null;
-        //    for (int i = 0; i < colliders.Length; i++)
-        //    {
-        //        if (colliders[i].GetComponent<Crop>())
-        //        {
-        //            currentCrop = colliders[i].GetComponent<Crop>();
-        //        }
-        //    }
-        //    return currentCrop;
-        //}
+        /// <summary>
+        /// 鼠标点击返回成熟的植物果实Object
+        /// </summary>
+        /// <param name="mouseWorldPos">鼠标点击位置</param>
+        /// <returns></returns>
+        public Crop GetCropObject(Vector3 mouseWorldPos)
+        {
+            Collider2D[] colliders = Physics2D.OverlapPointAll(mouseWorldPos);//Physics2D.OverlapPointAll:返回某个点周围的所有碰撞体放到一个数组中
+            Crop currentCrop = null;
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                if (colliders[i].GetComponent<Crop>())
+                {
+                    currentCrop = colliders[i].GetComponent<Crop>();
+                }
+            }
+            return currentCrop;
+        }
 
         ///// <summary>
         ///// 判断在鼠标检测范围之内是否有可实现收割的物品(草)
         ///// </summary>
         ///// <returns></returns>
-        //public bool HaveReapableItemsInRadius(Vector3 mouseWorldPos,ItemDetails tool)
+        //public bool HaveReapableItemsInRadius(Vector3 mouseWorldPos, ItemDetails tool)
         //{
         //    itemsInRadius = new List<ReapItem>();
         //    Collider2D[] colliders = new Collider2D[20];//检测到的碰撞体放入数组中
@@ -362,11 +365,12 @@ namespace MFarm.Map
             {
                 waterTilemap.ClearAllTiles();
             }
-            //foreach (var crop in FindObjectsOfType<Crop>())
-            //{
-            //    Destroy(crop.gameObject);
-            //}
-            DisplayMap(SceneManager.GetActiveScene().name);
+            // 将场景里所有crop物体全部销毁，后续弄个CropGenerator可以在加载场景中的时候可以生成我指定的crop在场景里，比如果实树等农作物
+            foreach (var crop in FindObjectsOfType<Crop>())     
+            {
+                Destroy(crop.gameObject);
+            }
+            DisplayMap(SceneManager.GetActiveScene().name);    // 显示地图瓦片             
         }
 
         /// <summary>
@@ -390,8 +394,8 @@ namespace MFarm.Map
                         SetWaterGround(tileDetails);
                     }
                     //TODO:种子
-                    //if (tileDetails.seedItemID > -1)//当前格子中有种子信息
-                    //    EventHandler.CallPlantSeedEvent(tileDetails.seedItemID, tileDetails);
+                    if (tileDetails.seedItemID > -1)//当前格子中有种子信息
+                        EventHandler.CallPlantSeedEvent(tileDetails.seedItemID, tileDetails);
                 }
             }
         }
@@ -403,7 +407,7 @@ namespace MFarm.Map
         ///// <param name="gridDimensions">网格范围</param>
         ///// <param name="gridOrigin">网格原点</param>
         ///// <returns>是否有当前场景信息</returns>
-        //public bool GetGridDimensions(string sceneName,out Vector2Int gridDimensions,out Vector2Int gridOrigin)
+        //public bool GetGridDimensions(string sceneName, out Vector2Int gridDimensions, out Vector2Int gridOrigin)
         //{
         //    gridDimensions = Vector2Int.zero;
         //    gridOrigin = Vector2Int.zero;//初始化为0

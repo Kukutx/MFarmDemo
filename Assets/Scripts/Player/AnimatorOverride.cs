@@ -26,14 +26,14 @@ public class AnimatorOverride : MonoBehaviour
     {
         EventHandler.ItemSelectedEvent += OnItemSelectedEvent; // 如果物品被玩家选中了
         EventHandler.BeforeSceneUnloadEvent += OnBeforeSceneUnloadEvent;
-        //EventHandler.HarvestAtPlayerPostion += OnHarvestAtPlayerPostion;
+        EventHandler.HarvestAtPlayerPostion += OnHarvestAtPlayerPostion;
     }
 
     private void OnDisable()
     {
         EventHandler.ItemSelectedEvent -= OnItemSelectedEvent;
         EventHandler.BeforeSceneUnloadEvent -= OnBeforeSceneUnloadEvent;
-        //EventHandler.HarvestAtPlayerPostion -= OnHarvestAtPlayerPostion;
+        EventHandler.HarvestAtPlayerPostion -= OnHarvestAtPlayerPostion;
     }
 
     private void OnBeforeSceneUnloadEvent()
@@ -42,23 +42,28 @@ public class AnimatorOverride : MonoBehaviour
         SwitchAnimator(PartType.None);
     }
 
-    //private void OnHarvestAtPlayerPostion(int ID)
-    //{
-    //    //显示对应物品的图片
-    //    Sprite itemSprite = InventoryManager.Instance.GetItemDetails(ID).itemOnWorldIcon;
-    //    if (holdItem.enabled == false)
-    //    {
-    //        StartCoroutine(ShowItem(itemSprite));
-    //    }
-    //}
+    private void OnHarvestAtPlayerPostion(int ID)
+    {
+        //显示对应物品的图片
+        Sprite itemSprite = InventoryManager.Instance.GetItemDetails(ID).itemOnWorldSprite;
+        if (holdItem.enabled == false)
+        {
+            StartCoroutine(ShowItem(itemSprite));
+        }
+    }
 
-    //private IEnumerator ShowItem(Sprite itemSprite)
-    //{
-    //    holdItem.sprite = itemSprite;
-    //    holdItem.enabled = true;
-    //    yield return new WaitForSeconds(1.0f);
-    //    holdItem.enabled = false;
-    //}
+    /// <summary>
+    /// 显示对应物品的图片
+    /// </summary>
+    /// <param name="itemSprite"></param>
+    /// <returns></returns>
+    private IEnumerator ShowItem(Sprite itemSprite)
+    {
+        holdItem.sprite = itemSprite;
+        holdItem.enabled = true;
+        yield return new WaitForSeconds(1.0f);
+        holdItem.enabled = false;
+    }
 
     /// <summary>
     /// 如果物品被玩家选中的事件
@@ -70,11 +75,12 @@ public class AnimatorOverride : MonoBehaviour
         //WORKFLOW:不同的工具返回不同的动画在这里补全
         PartType currentType = itemDetails.itemType switch
         {
-            ItemType.Seed => PartType.Carry,//假如itemType是种子,就给currentType赋值PartType.Carry
+            ItemType.Seed => PartType.Carry,//假如itemType是种子,就给currentType赋值PartType.Carry 或者 None
             ItemType.Commodity => PartType.Carry,
             ItemType.HoeTool => PartType.Hoe,
+            ItemType.ChopTool => PartType.Chop,
             ItemType.WaterTool => PartType.Water,
-            ItemType.CollectTool => PartType.Collect,
+            ItemType.CollectTool => PartType.None,   /*PartType.Collect*/
             ItemType.BreakTool => PartType.Break,
             ItemType.ReapTool => PartType.Reap,
             ItemType.Furniture => PartType.Carry,

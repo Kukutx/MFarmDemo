@@ -20,18 +20,18 @@ namespace MFarm.Inventory //手动添加一个命名空间，别的类不使用�
         [Header("背包数据")]
         //public InventoryBag_SO playerBagTemp;
         public InventoryBag_SO PlayerBag;           // 玩家背包
-                                                    //private InventoryBag_SO currentBoxBag;//当前打开的箱子的数据库
-                                                    //[Header("交易")]
-                                                    //public int playerMoney;
-                                                    //private Dictionary<string, List<InventoryItem>> boxDataDict = new Dictionary<string, List<InventoryItem>>();
-                                                    //public int BoxDataAmount => boxDataDict.Count;
+        //private InventoryBag_SO currentBoxBag;//当前打开的箱子的数据库
+        //[Header("交易")]
+        //public int playerMoney;
+        //private Dictionary<string, List<InventoryItem>> boxDataDict = new Dictionary<string, List<InventoryItem>>();
+        //public int BoxDataAmount => boxDataDict.Count;
 
         //public string GUID => GetComponent<DataGUID>().guid;
 
         private void OnEnable()
         {
             EventHandler.DropItemEvent += OnDropItemEvent;
-            //EventHandler.HarvestAtPlayerPostion += OnHarvestAtPlayerPostion;
+            EventHandler.HarvestAtPlayerPostion += OnHarvestAtPlayerPostion;
             //EventHandler.BuildFurnitureEvent += OnBuildFurnitureEvent;
             //EventHandler.BaseBagOpenEvent += OnBaseBagOpenEvent;
             //EventHandler.StartNewGameEvent += OnStartNewGameEvent;
@@ -39,7 +39,7 @@ namespace MFarm.Inventory //手动添加一个命名空间，别的类不使用�
         private void OnDisable()
         {
             EventHandler.DropItemEvent -= OnDropItemEvent;
-            //EventHandler.HarvestAtPlayerPostion -= OnHarvestAtPlayerPostion;
+            EventHandler.HarvestAtPlayerPostion -= OnHarvestAtPlayerPostion;
             //EventHandler.BuildFurnitureEvent -= OnBuildFurnitureEvent;
             //EventHandler.BaseBagOpenEvent -= OnBaseBagOpenEvent;
             //EventHandler.StartNewGameEvent -= OnStartNewGameEvent;
@@ -75,13 +75,13 @@ namespace MFarm.Inventory //手动添加一个命名空间，别的类不使用�
         //    }
         //}
 
-        //private void OnHarvestAtPlayerPostion(int ID)
-        //{
-        //    var index = GetItemIndexInBag(ID);
-        //    AddItemAtIndex(ID, index, 1);
-        //    //更新UI
-        //    EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);
-        //}
+        private void OnHarvestAtPlayerPostion(int ID)
+        {
+            var index = GetItemIndexInBag(ID);
+            AddItemAtIndex(ID, index, 1);
+            //更新UI
+            EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);
+        }
 
         private void OnDropItemEvent(int ID, Vector3 pos, ItemType itemType)
         {

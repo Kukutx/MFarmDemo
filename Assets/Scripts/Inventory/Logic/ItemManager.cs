@@ -86,7 +86,7 @@ namespace MFarm.Inventory
         /// <param name="pos"></param>
         private void OnInstantiateItemInScene(int ID, Vector3 pos)
         {
-            var item = Instantiate(itemPrefab, pos, Quaternion.identity, itemParent);//克隆物体
+            var item = Instantiate(bounceItemPrefab, pos, Quaternion.identity, itemParent);//克隆物体
             item.itemID = ID;
             item.GetComponent<ItemBounce>().InitBounceItem(pos, Vector3.up);
         }
@@ -153,10 +153,7 @@ namespace MFarm.Inventory
                     //将当前场景中有的物品给复制到场景中
                     foreach (var item in currentSceneItems)
                     {
-                        // 目前先用bounceItemPrefab将就一下
-                        Item newItem = Instantiate(bounceItemPrefab, item.position.ToVector3(), Quaternion.identity, itemParent);
-                       
-                        //Item newItem = Instantiate(itemPrefab, item.position.ToVector3(), Quaternion.identity, itemParent);
+                        Item newItem = Instantiate(itemPrefab, item.position.ToVector3(), Quaternion.identity, itemParent);
                         newItem.Init(item.ItemID);
                     }
                 }

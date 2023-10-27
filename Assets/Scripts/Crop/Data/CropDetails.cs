@@ -36,10 +36,11 @@ public class CropDetails
     public int transferItemID;
 
     [Space]
-    [Header("收割果实信息")]
+    [Header("收割果实/掉落物信息")]
     public int[] producedItemID; //收割果实的物品ID
     public int[] produceMinAmount;//收割果实的最小获得数 以下两个都是用来随机获得的农作物的阈值
     public int[] produceMaxAmount;//收割果实的最大获得数
+    [Header("掉落物的最大和最小范围范围")]
     public Vector2 spawnRadius;//生成果实的最小范围
     [Header("再次生长时间")]
     public int daysToRegrow;
@@ -48,10 +49,18 @@ public class CropDetails
     public bool generateAtPlayerPostion;  // 是否在玩家身上（位置）生成，就是当玩家在地里拔萝卜应该在玩家的头顶上或者身上生成
     public bool hasAnimation;//是否有动画
     public bool hasParticalEffect;//是否有粒子特效
+
+    // TODO:特效 音效等
     public Vector3 effectPos;//特效产生点的坐标
     public SoundName soundEffect;  // 音效
     public ParticaleEffectType effectType;  // 效果类型
-    public bool CheckToolAvailable(int toolID)//判断当前所持工具是否可用
+
+    /// <summary>
+    /// 判断当前所持工具是否可用
+    /// </summary>
+    /// <param name="toolID"></param>
+    /// <returns></returns>
+    public bool CheckToolAvailable(int toolID)
     {
         foreach (var tool in harvestToolItemID)
         {
@@ -60,6 +69,7 @@ public class CropDetails
         }
         return false;
     }
+
     /// <summary>
     /// 返回工具需要使用的次数
     /// </summary>

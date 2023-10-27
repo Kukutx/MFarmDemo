@@ -88,35 +88,35 @@ public static class EventHandler
         GameDayEvent?.Invoke(day, season);
     }
 
-    //public static event Action<int, TileDetails> PlantSeedEvent;
-    //public static void CallPlantSeedEvent(int ID, TileDetails tile)
-    //{
-    //    PlantSeedEvent?.Invoke(ID, tile);
-    //}
+    public static event Action<int, TileDetails> PlantSeedEvent; // 种植种子事件，将当前所使用的种子种植在指定的地图瓦片位置上
+    public static void CallPlantSeedEvent(int ID, TileDetails tile)
+    {
+        PlantSeedEvent?.Invoke(ID, tile);
+    }
 
-    //public static event Action<int> HarvestAtPlayerPostion;//在玩家指定位置生成ID物品
-    //public static void CallHarvestAtPlayerPostion(int ID)
-    //{
-    //    HarvestAtPlayerPostion?.Invoke(ID);
-    //}
+    public static event Action<int> HarvestAtPlayerPostion;//在玩家指定位置生成ID物品
+    public static void CallHarvestAtPlayerPostion(int ID)
+    {
+        HarvestAtPlayerPostion?.Invoke(ID);
+    }
 
-    //public static event Action RefreshCurrentMap;//刷新当前地图委托事件
-    //public static void CallRefreshCurrentMap()
-    //{
-    //    RefreshCurrentMap?.Invoke();
-    //}
+    public static event Action RefreshCurrentMap;//刷新当前地图委托事件
+    public static void CallRefreshCurrentMap()
+    {
+        RefreshCurrentMap?.Invoke();
+    }
 
-    //public static event Action<ParticaleEffectType, Vector3> ParticaleEffectEvent;//触发特效事件委托
-    //public static void CallParticaleEffectEvent(ParticaleEffectType effectType, Vector3 pos)
-    //{
-    //    ParticaleEffectEvent?.Invoke(effectType, pos);
-    //}
+    public static event Action<ParticaleEffectType, Vector3> ParticaleEffectEvent;//触发特效事件委托
+    public static void CallParticaleEffectEvent(ParticaleEffectType effectType, Vector3 pos)
+    {
+        ParticaleEffectEvent?.Invoke(effectType, pos);
+    }
 
-    //public static event Action GenerateCropEvent;
-    //public static void CallGenerateCropEvent()//直接在场景中生成种子树农作物等事件
-    //{
-    //    GenerateCropEvent?.Invoke();
-    //}
+    public static event Action GenerateCropEvent;
+    public static void CallGenerateCropEvent()//直接在场景中生成种子树农作物等事件
+    {
+        GenerateCropEvent?.Invoke();
+    }
 
     //public static event Action<DialoguePiece> ShowDialogueEvent;
     //public static void CallShowDialogueEvent(DialoguePiece piece)
@@ -138,12 +138,12 @@ public static class EventHandler
     //    BaseBagCloseEvent?.Invoke(slotType, bag_SO);
     //}
 
-    ////更新游戏当前状态委托事件
-    //public static event Action<GameState> UpdateGameStateEvent;//游戏有进行中状态和暂停状态
-    //public static void CallUpdateGameStateEvent(GameState gameState)
-    //{
-    //    UpdateGameStateEvent?.Invoke(gameState);
-    //}
+    //更新游戏当前状态委托事件
+    public static event Action<GameState> UpdateGameStateEvent;//游戏有进行中状态和暂停状态
+    public static void CallUpdateGameStateEvent(GameState gameState)
+    {
+        UpdateGameStateEvent?.Invoke(gameState);
+    }
 
     //public static event Action<ItemDetails, bool> ShowTradeUI;
     //public static void CallShowTradeUI(ItemDetails item, bool isSell)

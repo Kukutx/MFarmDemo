@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-//using MFarm.CropPlant;
+using MFarm.CropPlant;
 using MFarm.Inventory;
 using MFarm.Map;
 //using MFarm.Map;
@@ -190,8 +190,8 @@ public class CursorManager : MonoBehaviour
         if (currentTile != null)
         {
             //拿到种植下的种子数据
-            //CropDetails currentCrop = CropManager.Instance.GetCropDetails(currentTile.seedItemID);
-            //Crop crop = GridMapManager.Instance.GetCropObject(mouseWorldPos);
+            CropDetails currentCrop = CropManager.Instance.GetCropDetails(currentTile.seedItemID);
+            Crop crop = GridMapManager.Instance.GetCropObject(mouseWorldPos);
             switch (currentItem.itemType)
             {
                 case ItemType.Seed:
@@ -206,30 +206,30 @@ public class CursorManager : MonoBehaviour
                 case ItemType.WaterTool:
                     if (currentTile.daysSinceDug > -1 && currentTile.daysSinceWatered == -1) SetCursorValid(); else SetCursorInvalid();
                     break;
-                //case ItemType.BreakTool:
-                //case ItemType.ChopTool:
-                //    if (crop != null)
-                //    {
-                //        if (crop.canHarvest && crop.cropDetails.CheckToolAvailable(currentItem.itemID)) SetCursorValid(); else SetCursorInvalid();
-                //    }
-                //    else
-                //    {
-                //        SetCursorInvalid();
-                //    }
-                //    break;
-                //case ItemType.CollectTool:
-                //    if (currentCrop != null)
-                //    {
-                //        if (currentCrop.CheckToolAvailable(currentItem.itemID))//判断手里拿的工具ID是否和收割工具ID匹配
-                //        {
-                //            if (currentTile.growthDays >= currentCrop.TotalGrowthDays) SetCursorValid(); else SetCursorInvalid();//种子成熟后才可以选中
-                //        }
-                //    }
-                //    else
-                //    {
-                //        SetCursorInvalid();
-                //    }
-                //    break;
+                case ItemType.BreakTool:
+                case ItemType.ChopTool:
+                    if (crop != null)
+                    {
+                        if (crop.canHarvest && crop.cropDetails.CheckToolAvailable(currentItem.itemID)) SetCursorValid(); else SetCursorInvalid();
+                    }
+                    else
+                    {
+                        SetCursorInvalid();
+                    }
+                    break;
+                case ItemType.CollectTool:
+                    if (currentCrop != null)
+                    {
+                        if (currentCrop.CheckToolAvailable(currentItem.itemID))//判断手里拿的工具ID是否和收割工具ID匹配
+                        {
+                            if (currentTile.growthDays >= currentCrop.TotalGrowthDays) SetCursorValid(); else SetCursorInvalid();//种子成熟后才可以选中
+                        }
+                    }
+                    else
+                    {
+                        SetCursorInvalid();
+                    }
+                    break;
                 //case ItemType.ReapTool:
                 //    if (GridMapManager.Instance.HaveReapableItemsInRadius(mouseWorldPos, currentItem)) SetCursorValid(); else SetCursorInvalid();
                 //    break;
