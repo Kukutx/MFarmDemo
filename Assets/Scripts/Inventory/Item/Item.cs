@@ -1,7 +1,7 @@
+using MFarm.CropPlant;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//using MFarm.CropPlant;
 namespace MFarm.Inventory
 {
     /// <summary>
@@ -42,11 +42,11 @@ namespace MFarm.Inventory
             Vector2 newSize = new Vector2(spriteRenderer.sprite.bounds.size.x, spriteRenderer.sprite.bounds.size.y);
             coll.size = newSize;        // 设置尺寸
             coll.offset = new Vector2(0, spriteRenderer.sprite.bounds.center.y);        // 让描点pivot在图标最底部
-            if (itemDetails.itemType == ItemType.ReapableScenery)
+            if (itemDetails.itemType == ItemType.ReapableScenery)       // 如果物品属性是杂草
             {
-                //gameObject.AddComponent<ReapItem>();
-                //gameObject.GetComponent<ReapItem>().InitCropData(itemDetails.itemID);
-                //gameObject.AddComponent<ItemInterActive>();
+                gameObject.AddComponent<ReapItem>();
+                gameObject.GetComponent<ReapItem>().InitCropData(itemDetails.itemID);
+                gameObject.AddComponent<ItemInterActive>();
             }
         }
     }

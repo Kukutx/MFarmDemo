@@ -15,7 +15,7 @@ public class TimeUI : MonoBehaviour
     public Image seasonImage;                   // 用来切换季节图片
     public TextMeshProUGUI dataText;            // 日期的文本
     public TextMeshProUGUI timeText;            // 时间文本
-    public Sprite[] seasonSprites;//存放四张季节图片的数组
+    public Sprite[] seasonSprites;              //存放四张季节图片的数组
     private List<GameObject> clockBlocks = new List<GameObject>();  // 时间块
 
     private void Awake()
@@ -30,42 +30,42 @@ public class TimeUI : MonoBehaviour
     private void OnEnable()//注册需要的委托事件
     {
         EventHandler.GameMinuteEvent += OnGameMinuteEvent;
-        //EventHandler.GameDateSeason += OnGameDateSeason;
-        EventHandler.GameDateEvent += OnGameDateEvent;   /*GameDateSeason*/
+        EventHandler.GameDateEvent += OnGameDateEvent;   /*GameDateSeasonEvent*/
     }
 
     private void OnDisable()//注销需要的委托事件
     {
         EventHandler.GameMinuteEvent -= OnGameMinuteEvent;
-        //EventHandler.GameDateSeason -= OnGameDateSeason;
-        EventHandler.GameDateEvent -= OnGameDateEvent;          /*GameDateSeason*/
+        EventHandler.GameDateEvent -= OnGameDateEvent;          /*GameDateSeasonEvent*/
     }
 
+    /// <summary>
+    /// 时间事件
+    /// </summary>
+    /// <param name="minute"></param>
+    /// <param name="hour"></param>
+    /// <param name="season"></param>
+    /// <param name="day"></param>
     private void OnGameMinuteEvent(int minute, int hour, Season season, int day)
     {
         timeText.text = hour.ToString("00") + ":" + minute.ToString("00");
     }
 
+    /// <summary>
+    /// 日期与季节
+    /// </summary>
+    /// <param name="hour"></param>
+    /// <param name="day"></param>
+    /// <param name="month"></param>
+    /// <param name="year"></param>
+    /// <param name="season"></param>
     private void OnGameDateEvent(int hour, int day, int month, int year, Season season)
     {
-        dataText.text = year + "年" + month.ToString("00") + "月" + day.ToString("00") + "日";
-        seasonImage.sprite = seasonSprites[(int)season];
-        SwitchHourImage(hour);
-        DayNightImageRotate(hour);
+        dataText.text = year + "年" + month.ToString("00") + "月" + day.ToString("00") + "日";  // 设置日期
+        seasonImage.sprite = seasonSprites[(int)season];  // 设置季节
+        SwitchHourImage(hour);     // 设置显示时间块
+        DayNightImageRotate(hour); // 设置切换日夜的旋转
     }
-
-    //private void OnGameMinuteEvent(int minute, int hour)
-    //{
-    //    timeText.text = hour.ToString("00") + ":" + minute.ToString("00");
-    //}
-    ////日期与季节
-    //private void OnGameDateEvent(int hour, int day, int month, int year, Season season)
-    //{
-    //    dataText.text = year + "年" + month.ToString("00") + "月" + day.ToString("00") + "日"; // 设置日期
-    //    seasonImage.sprite = seasonSprites[(int)season];    // 设置季节
-    //    SwitchHourImage(hour);              // 设置显示时间块
-    //    DayNightImageRotate(hour);          // 设置切换日夜的旋转
-    //}
 
     /// <summary>
     /// 根据小时切换时间块显示

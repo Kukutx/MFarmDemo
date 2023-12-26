@@ -2,31 +2,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-//using MFarm.Save;
+using MFarm.Save;
 namespace MFarm.Inventory
 {
     /// <summary>
     /// 专门用来管理世界地图中所有的物品的管理类
     /// </summary>
-    public class ItemManager : Singleton<ItemManager>/*, ISaveable*/
+    public class ItemManager : Singleton<ItemManager>, ISaveable
     {
         public Item itemPrefab;             // 物品预制体
         public Item bounceItemPrefab;       // 丢弃物品预制体
         private Transform itemParent;       // 场景里物品的集合
-        private Transform playerTransform => FindObjectOfType<Player>().transform;
+        private Transform playerTransform => FindObjectOfType<Player>().transform;      // 获取玩家方向组件
 
-        //public string GUID => GetComponent<DataGUID>().guid;
+        public string GUID => GetComponent<DataGUID>().guid;         // 生成唯一标识码
 
         //记录场景Item，用来方便保存
         private Dictionary<string, List<SceneItem>> sceneItemDict = new Dictionary<string, List<SceneItem>>();//该字典通过场景名来保存场景中存在的物体
         //记录场景中的家具(string:场景名字)
-        //private Dictionary<string, List<SceneFurniture>> sceneFurnitureDict = new Dictionary<string, List<SceneFurniture>>();
+        private Dictionary<string, List<SceneFurniture>> sceneFurnitureDict = new Dictionary<string, List<SceneFurniture>>();
 
-        //private void Start()
-        //{
-        //    //ISaveable saveable = this;
-        //    //saveable.RegisterSaveable();
-        //}
+        private void Start()
+        {
+            ISaveable saveable = this;
+            saveable.RegisterSaveable();
+        }
 
         private void OnEnable()
         {
@@ -34,8 +34,8 @@ namespace MFarm.Inventory
             EventHandler.DropItemEvent += OnDropItemEvent;//扔东西委托事件
             EventHandler.BeforeSceneUnloadEvent += OnBeforeSceneUnloadEvent;      // 切换场景前委托事件
             EventHandler.AfterSceneLoadedEvent += OnAfterSceneLoadedEvent;         // 切换场景后委托事件
-            //EventHandler.BuildFurnitureEvent += OnBuildFurnitureEvent;
-            //EventHandler.StartNewGameEvent += OnStartNewGameEvent;
+            EventHandler.BuildFurnitureEvent += OnBuildFurnitureEvent;              // 生成家具事件
+            EventHandler.StartNewGameEvent += OnStartNewGameEvent;              // 开启新游戏进度事件
         }
 
         private void OnDisable()
@@ -44,39 +44,45 @@ namespace MFarm.Inventory
             EventHandler.DropItemEvent -= OnDropItemEvent;
             EventHandler.BeforeSceneUnloadEvent -= OnBeforeSceneUnloadEvent;
             EventHandler.AfterSceneLoadedEvent -= OnAfterSceneLoadedEvent;
-            //EventHandler.BuildFurnitureEvent -= OnBuildFurnitureEvent;
-            //EventHandler.StartNewGameEvent -= OnStartNewGameEvent;
+            EventHandler.BuildFurnitureEvent -= OnBuildFurnitureEvent;
+            EventHandler.StartNewGameEvent -= OnStartNewGameEvent;
         }
 
-        //private void OnStartNewGameEvent(int index)
-        //{
-        //    sceneItemDict.Clear();
-        //    sceneFurnitureDict.Clear();
-        //}
+        private void OnStartNewGameEvent(int index)
+        {
+            sceneItemDict.Clear();
+            sceneFurnitureDict.Clear();
+        }
 
-        //private void OnBuildFurnitureEvent(int ID, Vector3 mousePos)
-        //{
-        //    BulePrintDetailes bulePrint = InventoryManager.Instance.bulePrintData.GetBulePrintDetailes(ID);
-        //    var buildItem = Instantiate(bulePrint.buildPrefab, mousePos, Quaternion.identity, itemParent);
-        //    if (buildItem.GetComponent<Box>())
-        //    {
-        //        buildItem.GetComponent<Box>().index = InventoryManager.Instance.BoxDataAmount;
-        //        buildItem.GetComponent<Box>().InitBox(buildItem.GetComponent<Box>().index);
-        //    }
-        //}
+        /// <summary>
+        /// 生成建造家具事件
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <param name="mousePos"></param>
+
+        private void OnBuildFurnitureEvent(int ID, Vector3 mousePos)
+        {
+            BulePrintDetailes bulePrint = InventoryManager.Instance.bulePrintData.GetBulePrintDetailes(ID);
+            var buildItem = Instantiate(bulePrint.buildPrefab, mousePos, Quaternion.identity, itemParent);
+            if (buildItem.GetComponent<Box>())
+            {
+                buildItem.GetComponent<Box>().index = InventoryManager.Instance.BoxDataAmount;
+                buildItem.GetComponent<Box>().InitBox(buildItem.GetComponent<Box>().index);
+            }
+        }
 
 
         private void OnBeforeSceneUnloadEvent()
         {
             GetAllSceneItems();
-            //GetAllSceneFurnitures();
+            GetAllSceneFurnitures();
         }
 
         private void OnAfterSceneLoadedEvent()
         {
             itemParent = GameObject.FindWithTag("ItemParent").transform;    //场景加载之后再寻找ItemParent避免报空
             RecreateAllItems();
-            //RebuildFurniturn();
+            RebuildFurniturn();
         }
 
         /// <summary>
@@ -160,72 +166,86 @@ namespace MFarm.Inventory
             }
         }
 
-        ///// <summary>
-        ///// 获取场景中的所有家具
-        ///// </summary>
-        //private void GetAllSceneFurnitures()
-        //{
-        //    List<SceneFurniture> currentSceneFurnitures = new List<SceneFurniture>();//存放当前场景中物体的瓶子
-        //    foreach (var item in FindObjectsOfType<Furniture>())
-        //    {
-        //        SceneFurniture sceneFurniture = new SceneFurniture()
-        //        {
-        //            ItemID = item.itemID,
-        //            position = new SerializableVector3(item.transform.position)
-        //        };//找到当前场景中的所有Furniture并将它的属性传入到sceneFurniture中
-        //        currentSceneFurnitures.Add(sceneFurniture);//再将sceneFurniture放入临时列表
-        //    }
-        //    if (sceneFurnitureDict.ContainsKey(SceneManager.GetActiveScene().name))
-        //    {
-        //        //找到数据就更新Furniture数据列表
-        //        sceneFurnitureDict[SceneManager.GetActiveScene().name] = currentSceneFurnitures;
-        //    }
-        //    else//如果是新场景
-        //    {
-        //        sceneFurnitureDict.Add(SceneManager.GetActiveScene().name, currentSceneFurnitures);
-        //    }
-        //}
+        /// <summary>
+        /// 获取场景中的所有家具
+        /// </summary>
+        private void GetAllSceneFurnitures()
+        {
+            List<SceneFurniture> currentSceneFurnitures = new List<SceneFurniture>();//存放当前场景中物体的瓶子
+            foreach (var item in FindObjectsOfType<Furniture>())
+            {
+                SceneFurniture sceneFurniture = new SceneFurniture()
+                {
+                    ItemID = item.itemID,
+                    position = new SerializableVector3(item.transform.position)
+                };//找到当前场景中的所有Furniture并将它的属性传入到sceneFurniture中
 
-        ///// <summary>
-        ///// 重建当前场景家具
-        ///// </summary>
-        //private void RebuildFurniturn()
-        //{
-        //    List<SceneFurniture> currentSceneFurniture = new List<SceneFurniture>();
-        //    if (sceneFurnitureDict.TryGetValue(SceneManager.GetActiveScene().name, out currentSceneFurniture))
-        //    {
-        //        if (currentSceneFurniture != null)
-        //        {
-        //            foreach (SceneFurniture sceneFurniture in currentSceneFurniture)
-        //            {
-        //                BulePrintDetailes bulePrint = InventoryManager.Instance.bulePrintData.GetBulePrintDetailes(sceneFurniture.ItemID);
-        //                var buildItem = Instantiate(bulePrint.buildPrefab, sceneFurniture.position.ToVector3(), Quaternion.identity, itemParent);
-        //                if (buildItem.GetComponent<Box>())
-        //                {
-        //                    buildItem.GetComponent<Box>().InitBox(sceneFurniture.boxIndex);
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
+                // FixBug : 没有这个可能会将所有箱子的序号刷新为0
+                if (item.GetComponent<Box>())
+                {
+                    sceneFurniture.boxIndex = item.GetComponent<Box>().index;           // 获取所有箱子编号并存储
+                }
+                currentSceneFurnitures.Add(sceneFurniture);//再将sceneFurniture放入临时列表
+            }
+            if (sceneFurnitureDict.ContainsKey(SceneManager.GetActiveScene().name))
+            {
+                //找到数据就更新Furniture数据列表
+                sceneFurnitureDict[SceneManager.GetActiveScene().name] = currentSceneFurnitures;
+            }
+            else//如果是新场景
+            {
+                sceneFurnitureDict.Add(SceneManager.GetActiveScene().name, currentSceneFurnitures);
+            }
+        }
 
-        //public GameSaveData GenerateSaveData()
-        //{
-        //    GetAllSceneItems();
-        //    GetAllSceneFurnitures();//因为场景中的物品是在场景加载卸载后才保存的,未卸载前拿不到所有物品或家具,必须这里手动拿一下
-        //    GameSaveData saveData = new GameSaveData();
-        //    saveData.sceneItemDict = this.sceneItemDict;
-        //    saveData.sceneFurnitureDict = this.sceneFurnitureDict;
-        //    return saveData;
-        //}
+        /// <summary>
+        /// 重建当前场景家具
+        /// </summary>
+        private void RebuildFurniturn()
+        {
+            List<SceneFurniture> currentSceneFurniture = new List<SceneFurniture>();        // 当前场景的所有家具
+            if (sceneFurnitureDict.TryGetValue(SceneManager.GetActiveScene().name, out currentSceneFurniture))
+            {
+                if (currentSceneFurniture != null)
+                {
+                    foreach (SceneFurniture sceneFurniture in currentSceneFurniture)
+                    {
+                        BulePrintDetailes bulePrint = InventoryManager.Instance.bulePrintData.GetBulePrintDetailes(sceneFurniture.ItemID);  // 获取蓝图
+                        var buildItem = Instantiate(bulePrint.buildPrefab, sceneFurniture.position.ToVector3(), Quaternion.identity, itemParent);
+                        if (buildItem.GetComponent<Box>())
+                        {
+                            buildItem.GetComponent<Box>().InitBox(sceneFurniture.boxIndex);
+                        }
+                    }
+                }
+            }
+        }
 
-        //public void RestoreData(GameSaveData saveDate)
-        //{
-        //    this.sceneItemDict = saveDate.sceneItemDict;
-        //    this.sceneFurnitureDict = saveDate.sceneFurnitureDict;
-        //    RecreateAllItems();
-        //    RebuildFurniturn();//刷新
-        //}
+        /// <summary>
+        /// 生成保存数据
+        /// </summary>
+        /// <returns></returns>
+        public GameSaveData GenerateSaveData()
+        {
+            GetAllSceneItems();
+            GetAllSceneFurnitures();//因为场景中的物品是在场景加载卸载后才保存的,未卸载前拿不到所有物品或家具,必须这里手动拿一下
+            GameSaveData saveData = new GameSaveData();
+            saveData.sceneItemDict = this.sceneItemDict;
+            saveData.sceneFurnitureDict = this.sceneFurnitureDict;
+            return saveData;
+        }
+
+        /// <summary>
+        /// 恢复数据
+        /// </summary>
+        /// <param name="saveDate"></param>
+        public void RestoreData(GameSaveData saveDate)
+        {
+            this.sceneItemDict = saveDate.sceneItemDict;
+            this.sceneFurnitureDict = saveDate.sceneFurnitureDict;
+            RecreateAllItems();
+            RebuildFurniturn();//刷新
+        }
     }
 }
 

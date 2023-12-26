@@ -89,11 +89,19 @@ Dig : 种田那个未被垦田过
 
 Water: 被垦田了
 
-Front 1
+Front 1 ：可以用来做UI层的那些提示按键或者其他UI，比如npc里的UI_Sign
 
-Front 2
+Front 2：可以用来做UI层的那些提示按键或者其他UI，比如npc里的UI_Sign 优先级更高
 
-Collision
+Collision:碰撞区，比如边境等
+
+CanDig 是否可种田
+
+CanDropItem 是否可丢弃物品
+
+CanPlaceFurniture ：是否可放置家具
+
+NPC Obstacle    npc AStar 是否可行走的障碍物
 
 
 
@@ -109,6 +117,8 @@ Collision
 2.DOTween(HOTween v2) 	  (一个方便的小工具用来辅助变成，其实可以用传统的方式但是会开很多线程所以很麻烦)
 
 3.Fantasy RPG Cursor Pack （一个rpg鼠标样式的的资产）
+
+3.com.unity.nuget.newtonsoft-json （一个来自外部链接的NewtonsoftJson库，需要在Package Manager的Add package from git url上添加）
 
 
 
@@ -197,21 +207,42 @@ Collision
 
 
 
+这个Grid是用来测试Astar算法的，对本项目没啥作用
+
+![image-20231130003918261](C:\Users\liuzh\AppData\Roaming\Typora\typora-user-images\image-20231130003918261.png)
+
+
+
+这个是设置游戏里音频轨道的：
+
+![image-20231213001018820](C:\Users\liuzh\AppData\Roaming\Typora\typora-user-images\image-20231213001018820.png)
+
+点击那个Expose 可以将该音轨暴露出去，这样之后可以使用代码来控制
+
+![image-20231213001102976](C:\Users\liuzh\AppData\Roaming\Typora\typora-user-images\image-20231213001102976.png)
+
+![image-20231213001212979](C:\Users\liuzh\AppData\Roaming\Typora\typora-user-images\image-20231213001212979.png)
+
+这样右键可以在动画的某个片段上添加事件，比如特效，音频等
+
+![image-20231215005046102](C:\Users\liuzh\AppData\Roaming\Typora\typora-user-images\image-20231215005046102.png)
 
 
 
 
 
+这个Tool Box 是从Box预制体解包出来的：
+![image-20231226012624567](C:\Users\liuzh\AppData\Roaming\Typora\typora-user-images\image-20231226012624567.png)
+
+还有那个ToolBox的数据文件，这个其实没啥用就是老师说为了添加游戏性作为测试添加上去的，可以不用在意，可以作为初始的奖励箱，里面包含了所有的初始工具等等，这个也一样
+
+![image-20231226015556368](C:\Users\liuzh\AppData\Roaming\Typora\typora-user-images\image-20231226015556368.png)
 
 
 
+虽然我也不知道这个是拿来干嘛的，但是在101集的时候经过 Physics2D.OverlapBox(point, size, 0);，老师让我们设置这个Layer，说是可以忽略射线检测，让他忽略所有碰撞关系
 
-
-
-
-
-
-
+![image-20231226014426976](C:\Users\liuzh\AppData\Roaming\Typora\typora-user-images\image-20231226014426976.png)
 
 
 

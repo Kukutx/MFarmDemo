@@ -4,14 +4,14 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using MFarm.CropPlant;
-//using MFarm.Save;
+using MFarm.Save;
 
 /// <summary>
 /// 网格地图管理，生成地图数据
 /// </summary>
 namespace MFarm.Map
 {
-    public class GridMapManager : Singleton<GridMapManager>/*,ISaveable*/
+    public class GridMapManager : Singleton<GridMapManager>,ISaveable
     {
         [Header("种地瓦片切换信息")]
         public RuleTile digTile;//实例化两个规则瓦片
@@ -21,18 +21,16 @@ namespace MFarm.Map
 
         [Header("地图信息")]
         public List<MapData_SO> mapDataList;
-        ////定义一个字典来保存格子 （场景名字+格子坐标对应的瓦片信息）
+        //定义一个字典来保存格子 （场景名字+格子坐标对应的瓦片信息）
         private Dictionary<string, TileDetails> tileDetailesDict = new Dictionary<string, TileDetails>();
-        ////记录场景是否第一次加载
+        //记录场景是否第一次加载
         private Dictionary<string, bool> firstLoadDic = new Dictionary<string, bool>();
         private Grid currentGrid;       // 当前网格
 
-        ////杂草列表
-        //private List<ReapItem> itemsInRadius;
+        private List<ReapItem> itemsInRadius; //杂草列表
+        private Season currentSeason;           // 当前季节
 
-        private Season currentSeason;
-
-        //public string GUID => GetComponent<DataGUID>().guid;
+        public string GUID => GetComponent<DataGUID>().guid;
 
         private void Start()
         {
@@ -41,8 +39,8 @@ namespace MFarm.Map
                 firstLoadDic.Add(mapData.sceneName, true);//所有的场景都是第一次加载,加载场景之后就把它改为False
                 InitTileDetailsDict(mapData);       // 初始化字典
             }
-            //ISaveable saveable = this;
-            //saveable.RegisterSaveable();
+            ISaveable saveable = this;
+            saveable.RegisterSaveable();
         }
 
         private void OnEnable()
@@ -148,7 +146,7 @@ namespace MFarm.Map
                     case ItemType.Seed:
                         EventHandler.CallPlantSeedEvent(itemDetails.itemID, currentTile);   // 种植事件
                         EventHandler.CallDropItemEvent(itemDetails.itemID, mouseWorldPos, itemDetails.itemType);  // 当种植一个种子的时候顺便在背包减少种植的那个种子
-                        //EventHandler.CallPlaySoundEvent(SoundName.Plant);
+                        EventHandler.CallPlaySoundEvent(SoundName.Plant);
                         break;
 
                     case ItemType.Commodity:
@@ -161,49 +159,52 @@ namespace MFarm.Map
                         currentTile.canDig = false;
                         currentTile.canDropItm = false;
                         //音效
-                        //EventHandler.CallPlaySoundEvent(SoundName.Hoe);
+                        EventHandler.CallPlaySoundEvent(SoundName.Hoe);     
                         break;
 
                     case ItemType.WaterTool:
                         SetWaterGround(currentTile);
                         currentTile.daysSinceWatered = 0;
                         //音效
-                        //EventHandler.CallPlaySoundEvent(SoundName.Water);
+                        EventHandler.CallPlaySoundEvent(SoundName.Water);
                         break;
 
                     case ItemType.BreakTool:
                     case ItemType.ChopTool:
                         //执行收割方法
                         currentCrop?.ProcessToolAction(itemDetails, currentCrop.tileDetails);
+
+                        // 这里呢因为老师是自己手动在CropDataList_SO 给对应的农作物添加音效没有设置工具的默认音效，以后可以考虑入手，
                         break;
 
                     case ItemType.CollectTool:
                         //执行收割方法
                         currentCrop.ProcessToolAction(itemDetails, currentTile);
                         break;
-                    //case ItemType.ReapTool:
-                    //    var reapCount = 0;
-                    //    for (int i = 0; i < itemsInRadius.Count; i++)
-                    //    {
-                    //        EventHandler.CallParticaleEffectEvent(ParticaleEffectType.ReapableScenery, itemsInRadius[i].transform.position + Vector3.up);
-                    //        itemsInRadius[i].SpawnHarvestItems();
-                    //        Destroy(itemsInRadius[i].gameObject);
-                    //        reapCount++;
-                    //        if (reapCount >= Settings.reapAmount)
-                    //        {
-                    //            break;//限制一下一次性能收割的草数量避免直接收割一大片
-                    //        }
-                    //    }
-                    //    EventHandler.CallPlaySoundEvent(SoundName.Reap);
-                    //    break;
 
-                    //case ItemType.Furniture:
-                    //    //在地图上生成物品 ItemManager
-                    //    //移除当前物品(图纸) InventoryManager
-                    //    //移除资源物品 InventoryManager
-                    //    //这里只需要触发一个事件即可,然后激活事件之后,对应的脚本去干它们自己该干的活儿
-                    //    EventHandler.CallBuildFurnitureEvent(itemDetails.itemID, mouseWorldPos);
-                    //    break;
+                    case ItemType.ReapTool:
+                        var reapCount = 0;
+                        for (int i = 0; i < itemsInRadius.Count; i++)
+                        {
+                            EventHandler.CallParticaleEffectEvent(ParticaleEffectType.ReapableScenery, itemsInRadius[i].transform.position + Vector3.up);
+                            itemsInRadius[i].SpawnHarvestItems();
+                            Destroy(itemsInRadius[i].gameObject);
+                            reapCount++;
+                            if (reapCount >= Settings.reapAmount)
+                            {
+                                break;//限制一下一次性能收割的草数量避免直接收割一大片
+                            }
+                        }
+                        EventHandler.CallPlaySoundEvent(SoundName.Reap);
+                        break;
+
+                    case ItemType.Furniture:
+                        //在地图上生成物品 ItemManager
+                        //移除当前物品(图纸) InventoryManager
+                        //移除资源物品 InventoryManager
+                        //这里只需要触发一个事件即可,然后激活事件之后,对应的脚本去干它们自己该干的活儿
+                        EventHandler.CallBuildFurnitureEvent(itemDetails.itemID, mouseWorldPos);
+                        break;
                 }
                 UpdateTileDetails(currentTile);
             }
@@ -242,6 +243,9 @@ namespace MFarm.Map
             RefreshMap(); 
         }
 
+        /// <summary>
+        /// 场景被加载之后的事件
+        /// </summary>
         private void OnAfterSceneLoadedEvent()
         {
             currentGrid = FindObjectOfType<Grid>();
@@ -279,35 +283,35 @@ namespace MFarm.Map
             return currentCrop;
         }
 
-        ///// <summary>
-        ///// 判断在鼠标检测范围之内是否有可实现收割的物品(草)
-        ///// </summary>
-        ///// <returns></returns>
-        //public bool HaveReapableItemsInRadius(Vector3 mouseWorldPos, ItemDetails tool)
-        //{
-        //    itemsInRadius = new List<ReapItem>();
-        //    Collider2D[] colliders = new Collider2D[20];//检测到的碰撞体放入数组中
-        //    //圆形物理检测(检测的中心点,检测的范围,检测到的物体放入到的数组)
-        //    //OverlapCircleNonAlloc和OverlapCircle的区别
-        //    //OverlapCircle会系统自动帮你将检测到的物体不断new创建放入到临时List列表中
-        //    //OverlapCircleNonAlloc是你事先设定好一个固定大小的数组,避免系统自己new列表来产生缓存,减少CG
-        //    Physics2D.OverlapCircleNonAlloc(mouseWorldPos, tool.itemUseRadius, colliders);
-        //    if (colliders.Length > 0)
-        //    {
-        //        for (int i = 0; i < colliders.Length; i++)
-        //        {
-        //            if (colliders[i] != null)
-        //            {
-        //                if (colliders[i].GetComponent<ReapItem>())
-        //                {
-        //                    var item = colliders[i].GetComponent<ReapItem>();
-        //                    itemsInRadius.Add(item);//将ReapItem放入列表中
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return itemsInRadius.Count > 0;
-        //}
+        /// <summary>
+        /// 判断在鼠标检测范围之内是否有可实现收割的物品(草)
+        /// </summary>
+        /// <returns></returns>
+        public bool HaveReapableItemsInRadius(Vector3 mouseWorldPos, ItemDetails tool)
+        {
+            itemsInRadius = new List<ReapItem>();
+            Collider2D[] colliders = new Collider2D[20];//检测到的碰撞体放入数组中
+            //圆形物理检测(检测的中心点,检测的范围,检测到的物体放入到的数组)
+            //OverlapCircleNonAlloc和OverlapCircle的区别
+            //OverlapCircle会系统自动帮你将检测到的物体不断new创建放入到临时List列表中
+            //OverlapCircleNonAlloc是你事先设定好一个固定大小的数组,避免系统自己new列表来产生缓存,减少CG
+            Physics2D.OverlapCircleNonAlloc(mouseWorldPos, tool.itemUseRadius, colliders);
+            if (colliders.Length > 0)
+            {
+                for (int i = 0; i < colliders.Length; i++)
+                {
+                    if (colliders[i] != null)
+                    {
+                        if (colliders[i].GetComponent<ReapItem>())
+                        {
+                            var item = colliders[i].GetComponent<ReapItem>();
+                            itemsInRadius.Add(item);//将ReapItem放入列表中
+                        }
+                    }
+                }
+            }
+            return itemsInRadius.Count > 0;
+        }
 
         /// <summary>
         /// 显示挖坑瓦片
@@ -400,44 +404,52 @@ namespace MFarm.Map
             }
         }
 
-        ///// <summary>
-        ///// 根据场景名字构建网格范围,输出范围和原点
-        ///// </summary>
-        ///// <param name="sceneName">场景名字</param>
-        ///// <param name="gridDimensions">网格范围</param>
-        ///// <param name="gridOrigin">网格原点</param>
-        ///// <returns>是否有当前场景信息</returns>
-        //public bool GetGridDimensions(string sceneName, out Vector2Int gridDimensions, out Vector2Int gridOrigin)
-        //{
-        //    gridDimensions = Vector2Int.zero;
-        //    gridOrigin = Vector2Int.zero;//初始化为0
-        //    foreach (var mapData in mapDataList)//循环拿出每一张地图
-        //    {
-        //        if (mapData.sceneName == sceneName)//如果有该场景
-        //        {
-        //            gridDimensions.x = mapData.gridWidth;
-        //            gridDimensions.y = mapData.gridHeight;
-        //            gridOrigin.x = mapData.originX;
-        //            gridOrigin.y = mapData.originY;
-        //            return true;
-        //        }//则将当前场景中的数据全部输出传入节点中并返回true
-        //    }
-        //    return false;
-        //}
+        /// <summary>
+        /// 根据场景名字构建网格范围,输出范围和原点
+        /// </summary>
+        /// <param name="sceneName">场景名字</param>
+        /// <param name="gridDimensions">网格范围</param>
+        /// <param name="gridOrigin">网格原点</param>
+        /// <returns>是否有当前场景信息</returns>
+        public bool GetGridDimensions(string sceneName, out Vector2Int gridDimensions, out Vector2Int gridOrigin)
+        {
+            gridDimensions = Vector2Int.zero;
+            gridOrigin = Vector2Int.zero;//初始化为0
+            foreach (var mapData in mapDataList)//循环拿出每一张地图
+            {
+                if (mapData.sceneName == sceneName)//如果有该场景
+                {
+                    gridDimensions.x = mapData.gridWidth;
+                    gridDimensions.y = mapData.gridHeight;
+                    gridOrigin.x = mapData.originX;
+                    gridOrigin.y = mapData.originY;
+                    return true;
+                }//则将当前场景中的数据全部输出传入节点中并返回true
+            }
+            return false;
+        }
 
-        //public GameSaveData GenerateSaveData()
-        //{
-        //    GameSaveData saveData = new GameSaveData();
-        //    saveData.tileDetailsDict = this.tileDetailesDict;
-        //    saveData.firstLoadDict = this.firstLoadDic;
-        //    return saveData;
-        //}
+        /// <summary>
+        /// 生成保存数据
+        /// </summary>
+        /// <returns></returns>
+        public GameSaveData GenerateSaveData()
+        {
+            GameSaveData saveData = new GameSaveData();
+            saveData.tileDetailsDict = this.tileDetailesDict;
+            saveData.firstLoadDict = this.firstLoadDic;
+            return saveData;
+        }
 
-        //public void RestoreData(GameSaveData saveDate)
-        //{
-        //    this.tileDetailesDict = saveDate.tileDetailsDict;
-        //    this.firstLoadDic = saveDate.firstLoadDict;
-        //}
+        /// <summary>
+        /// 恢复数据
+        /// </summary>
+        /// <param name="saveDate"></param>
+        public void RestoreData(GameSaveData saveDate)
+        {
+            this.tileDetailesDict = saveDate.tileDetailsDict;
+            this.firstLoadDic = saveDate.firstLoadDict;
+        }
     }
 }
 

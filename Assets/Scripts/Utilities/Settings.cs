@@ -25,22 +25,22 @@ public class Settings {
     public const float fadeDuration = 1.5f;  //场景切换淡入淡出的动画持续事件    （Loading那个）
 
     //割草数量限制
-    public const int reapAmount = 2;
+    public const int reapAmount = 4;
 
     //NPC网格移动
-    public const float gridCellSize = 1;
+    public const float gridCellSize = 1;            // 网格尺寸
     public const float gridCellDiagonalSize = 1.41f;//斜方向移动1.14刚好到网格中心
-    public const float pixelSize = 0.05f;//本游戏一个像素点的大小
+    public const float pixelSize = 0.05f;//本游戏一个像素点的大小，像素距离
     public const float animationBreakTime = 5f;//动画间隔
-    public const int maxGridSize = 9999;
+    public const int maxGridSize = 9999;        // 最大的网格尺寸
 
     //灯光
     public const float lightChangeDuration = 25f;//灯光25秒动态变换更新一次
-    public static TimeSpan morningTime = new TimeSpan(5, 0, 0);
-    public static TimeSpan nightTime = new TimeSpan(19, 0, 0);//TimeSpan:时间戳
+    public static TimeSpan morningTime = new TimeSpan(5, 0, 0);     //  早上时间戳
+    public static TimeSpan nightTime = new TimeSpan(19, 0, 0);// 夜晚时间戳 TimeSpan:时间戳
 
     //开始新游戏人物的初始坐标,初始金钱,背包等
-    public static Vector3 playerStartPos = new Vector3(-9.0f, -7.0f, 0);
-    public const int playerStartMoney = 100;
+    public static Vector3 playerStartPos = new Vector3(-9.0f, -7.0f, 0);        // 开启新存档时，人物的初始坐标
+    public const int playerStartMoney = 100;        // 初始金钱
 
 }

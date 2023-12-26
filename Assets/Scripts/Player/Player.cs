@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//using MFarm.Save;
+using MFarm.Save;
 /// <summary>
-/// 人物
+/// 玩家
 /// </summary>
-public class Player : MonoBehaviour/*, ISaveable //控制玩家基本操作的类*/
+public class Player : MonoBehaviour, ISaveable //控制玩家基本操作的类
 {
     private Rigidbody2D rb;
     public float speed;         // 速度
@@ -15,26 +15,27 @@ public class Player : MonoBehaviour/*, ISaveable //控制玩家基本操作的�
     private Vector2 movementInput;      // 移动输入
     private Animator[] animators;       // 用来获取所有动画行为的数组
     private bool isMoving;              // 是否移动
-    private bool inputDisable;          //玩家此时不能操作，比如当场景进行切换或卸载时，玩家是不能行动的
+    private bool inputDisable;          // 玩家此时不能操作，比如当场景进行切换或卸载时，玩家是不能行动的
     //动画使用工具
     private float mouseX;
     private float mouseY;
     private bool useTool;
 
-    //public string GUID => GetComponent<DataGUID>().guid;
+    public string GUID => GetComponent<DataGUID>().guid;        // 生成唯一标识码
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animators = GetComponentsInChildren<Animator>();        // 获取当前的子组件下的所有子行为
-        //inputDisable = true;
+        inputDisable = true;                                    // 玩家的控制暂时关掉
     }
 
-    //private void Start()
-    //{
-    //    ISaveable saveable = this;//因为Player类继承了ISaveable接口所有能够直接赋值进ISaveable接口类型
-    //    saveable.RegisterSaveable();//注册Player类放入SaveLoadManager列表中代表是要被保存为数据的类
-    //}
+    private void Start()
+    {
+        // 注册存档方法
+        ISaveable saveable = this;//因为Player类继承了ISaveable接口所有能够直接赋值进ISaveable接口类型
+        saveable.RegisterSaveable();//注册Player类放入SaveLoadManager列表中代表是要被保存为数据的类
+    }
 
     private void OnEnable()
     {
@@ -42,9 +43,9 @@ public class Player : MonoBehaviour/*, ISaveable //控制玩家基本操作的�
         EventHandler.AfterSceneLoadedEvent += OnAfterSceneLoadedEvent;
         EventHandler.MoveToPosition += OnMoveToPosition;
         EventHandler.MouseClickedEvent += OnMouseClickedEvent;
-        //EventHandler.UpdateGameStateEvent += OnUpdateGameStateEvent;
-        //EventHandler.StartNewGameEvent += OnStartNewGameEvent;
-        //EventHandler.EndGameEvent += OnEndGameEvent;
+        EventHandler.UpdateGameStateEvent += OnUpdateGameStateEvent;
+        EventHandler.StartNewGameEvent += OnStartNewGameEvent;
+        EventHandler.EndGameEvent += OnEndGameEvent;
     }
 
     private void OnDisable()
@@ -53,21 +54,10 @@ public class Player : MonoBehaviour/*, ISaveable //控制玩家基本操作的�
         EventHandler.AfterSceneLoadedEvent -= OnAfterSceneLoadedEvent;
         EventHandler.MoveToPosition -= OnMoveToPosition;
         EventHandler.MouseClickedEvent -= OnMouseClickedEvent;
-        //EventHandler.UpdateGameStateEvent -= OnUpdateGameStateEvent;
-        //EventHandler.StartNewGameEvent -= OnStartNewGameEvent;
-        //EventHandler.EndGameEvent -= OnEndGameEvent;
+        EventHandler.UpdateGameStateEvent -= OnUpdateGameStateEvent;
+        EventHandler.StartNewGameEvent -= OnStartNewGameEvent;
+        EventHandler.EndGameEvent -= OnEndGameEvent;
     }
-
-    //private void OnEndGameEvent()
-    //{
-    //    inputDisable = true;
-    //}
-
-    //private void OnStartNewGameEvent(int index)
-    //{
-    //    inputDisable = false;
-    //    transform.position = Settings.playerStartPos;
-    //}
 
     private void Update()
     {
@@ -86,6 +76,24 @@ public class Player : MonoBehaviour/*, ISaveable //控制玩家基本操作的�
         if (!inputDisable) Movement();         // 因为用到了刚体也就是物理需要在FixedUpdate调用
     }
 
+    /// <summary>
+    /// 结束游戏事件
+    /// </summary>
+    private void OnEndGameEvent()
+    {
+        inputDisable = true;
+    }
+
+    /// <summary>
+    /// 开启新游戏进度事件
+    /// </summary>
+    /// <param name="index"></param>
+    private void OnStartNewGameEvent(int index)
+    {
+        inputDisable = false;
+        transform.position = Settings.playerStartPos;
+    }
+
     private void OnBeforeSceneUnloadEvent()
     {
         inputDisable = true;
@@ -101,18 +109,22 @@ public class Player : MonoBehaviour/*, ISaveable //控制玩家基本操作的�
         transform.position = targetPosition;
     }
 
-    //private void OnUpdateGameStateEvent(GameState gameState)
-    //{
-    //    switch (gameState)
-    //    {
-    //        case GameState.Pause:
-    //            inputDisable = true;//玩家不能控制
-    //            break;
-    //        case GameState.Gameplay:
-    //            inputDisable = false;//玩家可以控制
-    //            break;
-    //    }
-    //}
+    /// <summary>
+    /// 更新游戏状态事件
+    /// </summary>
+    /// <param name="gameState"></param>
+    private void OnUpdateGameStateEvent(GameState gameState)
+    {
+        switch (gameState)
+        {
+            case GameState.Pause:
+                inputDisable = true;//玩家不能控制
+                break;
+            case GameState.Gameplay:
+                inputDisable = false;//玩家可以控制
+                break;
+        }
+    }
 
     /// <summary>
     /// 鼠标点击事件，针对左键，比如手持斧头砍树的时候点击触发事件
@@ -200,6 +212,9 @@ public class Player : MonoBehaviour/*, ISaveable //控制玩家基本操作的�
         rb.MovePosition(rb.position + movementInput * speed * Time.deltaTime);
     }
 
+    /// <summary>
+    /// 切换动画控制器
+    /// </summary>
     private void SwitchAnimator()
     {
         foreach (var anim in animators)
@@ -215,18 +230,26 @@ public class Player : MonoBehaviour/*, ISaveable //控制玩家基本操作的�
         }
     }
 
-    //public GameSaveData GenerateSaveData()
-    //{
-    //    //写好了将当前人物坐标数据存入到一个新的GameSaveData
-    //    GameSaveData saveData = new GameSaveData();
-    //    saveData.characterPosDict = new Dictionary<string, SerializableVector3>();
-    //    saveData.characterPosDict.Add(this.name, new SerializableVector3(transform.position));
-    //    return saveData;
-    //}
+    /// <summary>
+    /// 生成并保存要存储的数据
+    /// </summary>
+    /// <returns></returns>
+    public GameSaveData GenerateSaveData()
+    {
+        //写好了将当前人物坐标数据存入到一个新的GameSaveData
+        GameSaveData saveData = new GameSaveData();
+        saveData.characterPosDict = new Dictionary<string, SerializableVector3>();
+        saveData.characterPosDict.Add(this.name, new SerializableVector3(transform.position));
+        return saveData;
+    }
 
-    //public void RestoreData(GameSaveData saveDate)
-    //{
-    //    var targetPosition = saveDate.characterPosDict[this.name].ToVector3();
-    //    transform.position = targetPosition;
-    //}
+    /// <summary>
+    /// 恢复存档存储的对应数据，简称读取进度
+    /// </summary>
+    /// <param name="saveDate"></param>
+    public void RestoreData(GameSaveData saveDate)
+    {
+        var targetPosition = saveDate.characterPosDict[this.name].ToVector3();      // 在存档的字典里获得人物的坐标
+        transform.position = targetPosition;                    // 赋值人物坐标
+    }
 }

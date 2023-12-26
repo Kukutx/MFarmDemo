@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityGame.Utilities.Attribute;
 /// <summary>
 /// 该文件用来存放所有类，接口和结构体，这样方便管理
 /// </summary>
@@ -35,8 +36,8 @@ public class ItemDetails
 [System.Serializable]
 public struct InventoryItem //相比于class,struct结构体更适合来存放背包数据,因为它会默认为0而不是null,避免背包过多报null
 {
-    public int itemID;
-    public int itemAmount;
+    public int itemID;          // 物品id
+    public int itemAmount;      // 物品数量
 }
 
 /// <summary>
@@ -94,9 +95,9 @@ public class SceneFurniture
 {
     //它们有什么属性↓
     //TODO:更多属性信息
-    public int ItemID;
+    public int ItemID;                  // 物品ID
     public SerializableVector3 position;//它们有ID和位置信息
-    public int boxIndex;
+    public int boxIndex;            // 框索引
 }
 
 /// <summary>
@@ -106,8 +107,8 @@ public class SceneFurniture
 public class TileProperty
 {
     public Vector2Int tileCoordinate;//瓦片坐标
-    public GridType gridType;
-    public bool boolTypeValue;
+    public GridType gridType;       // 网格属性类型
+    public bool boolTypeValue;      // 检定定义的属性是否可丢弃挖掘等等
 }
 
 /// <summary>
@@ -130,27 +131,32 @@ public class TileDetails
 
 #endregion
 
-//[System.Serializable]
-//public class NPCPosition
-//{
-//    public Transform npc;
-//    public string startScene;
-//    public Vector3 position;
-//}
+[System.Serializable]
+public class NPCPosition
+{
+    public Transform npc;               // npc方向
+    /*[SceneName]*/ public string startScene;   // 可以添加[SceneName]在前面但是因为unity当前版本好像有bug如果有两个节点切换场景会一起切换虽然值没有变化，所以暂时不用 [SceneName] public string startScene;
+    public Vector3 position;            // npc位置
+}
 
-////场景路径
-//[System.Serializable]
-//public class SceneRoute
-//{
-//    public string fromSceneName;
-//    public string gotoSceneName;
-//    public List<ScenePath> scenePathList;
-//}
+/// <summary>
+/// 场景路由
+/// </summary>
+[System.Serializable]
+public class SceneRoute
+{
+    public string fromSceneName;    // 从那个场景来
+    public string gotoSceneName;    // 要去那个场景
+    public List<ScenePath> scenePathList;       // 场景路径列表
+}
 
-//[System.Serializable]
-//public class ScenePath
-//{
-//    public string sceneName;
-//    public Vector2Int fromGridCell;
-//    public Vector2Int gotoGridCell;
-//}
+/// <summary>
+/// 场景路径,用来NPC切换场景
+/// </summary>
+[System.Serializable]
+public class ScenePath
+{
+    public string sceneName;         // 场景名称
+    public Vector2Int fromGridCell;  // 从那个场景的网格坐标点来
+    public Vector2Int gotoGridCell;  // 要去那个场景的网格坐标点
+}

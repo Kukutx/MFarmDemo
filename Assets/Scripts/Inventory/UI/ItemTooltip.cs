@@ -19,10 +19,14 @@ public class ItemTooltip : MonoBehaviour
     [SerializeField] private GameObject bottomPart;         // 提示框底部是否显示
 
     [Header("建造")]
-    public GameObject resoursePanel;
-    [SerializeField] private Image[] resourseItem;
+    public GameObject resoursePanel;            // 所需建造资源的面板
+    [SerializeField] private Image[] resourseItem;      // 资源的图片
 
-    // 设置提示框
+    /// <summary>
+    /// 设置提示框
+    /// </summary>
+    /// <param name="itemDetails"></param>
+    /// <param name="slotType"></param>
     public void SetupTooltip(ItemDetails itemDetails, SlotType slotType)
     {
         nameText.text = itemDetails.itemName;
@@ -68,22 +72,26 @@ public class ItemTooltip : MonoBehaviour
         };
     }
 
-    //public void SetupResouresPanel(int ID)
-    //{
-    //    var bulePrintDetails = InventoryManager.Instance.bulePrintData.GetBulePrintDetailes(ID);
-    //    for (int i = 0; i < resourseItem.Length; i++)
-    //    {
-    //        if (i < bulePrintDetails.resourceItem.Length)
-    //        {
-    //            var item = bulePrintDetails.resourceItem[i];
-    //            resourseItem[i].gameObject.SetActive(true);
-    //            resourseItem[i].sprite = InventoryManager.Instance.GetItemDetails(item.itemID).itemIcon;
-    //            resourseItem[i].transform.GetChild(0).GetComponent<Text>().text = item.itemAmount.ToString();
-    //        }
-    //        else
-    //        {
-    //            resourseItem[i].gameObject.SetActive(false);
-    //        }
-    //    }
-    //}
+    /// <summary>
+    /// 设置建造资源的面板
+    /// </summary>
+    /// <param name="ID"></param>
+    public void SetupResouresPanel(int ID)
+    {
+        var bulePrintDetails = InventoryManager.Instance.bulePrintData.GetBulePrintDetailes(ID);
+        for (int i = 0; i < resourseItem.Length; i++)
+        {
+            if (i < bulePrintDetails.resourceItem.Length)
+            {
+                var item = bulePrintDetails.resourceItem[i];
+                resourseItem[i].gameObject.SetActive(true);
+                resourseItem[i].sprite = InventoryManager.Instance.GetItemDetails(item.itemID).itemIcon;
+                resourseItem[i].transform.GetChild(0).GetComponent<Text>().text = item.itemAmount.ToString();
+            }
+            else
+            {
+                resourseItem[i].gameObject.SetActive(false);
+            }
+        }
+    }
 }

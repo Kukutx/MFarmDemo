@@ -30,15 +30,17 @@ namespace MFarm.Inventory
                 inventoryUI.itemToolTip.SetupTooltip(slotUI.itemDetails, slotUI.slotType);          // 设置提示框信息
                 inventoryUI.itemToolTip.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0); // 设置提示框的锚点位置  
                 inventoryUI.itemToolTip.transform.position = transform.position + Vector3.up * 60;  // 显示位置
-                //if (slotUI.itemDetails.itemType == ItemType.Furniture)
-                //{
-                //    inventoryUI.itemToolTip.resoursePanel.SetActive(true);
-                    //inventoryUI.itemToolTip.SetupResouresPanel(slotUI.itemDetails.itemID);
-                //}
-                //else
-                //{
-                //    inventoryUI.itemToolTip.resoursePanel.SetActive(false);  // 设置提示框不显示
-                //}
+
+                // 是否显示建造资源面板
+                if (slotUI.itemDetails.itemType == ItemType.Furniture)
+                {
+                    inventoryUI.itemToolTip.resoursePanel.SetActive(true);
+                    inventoryUI.itemToolTip.SetupResouresPanel(slotUI.itemDetails.itemID);
+                }
+                else
+                {
+                    inventoryUI.itemToolTip.resoursePanel.SetActive(false);  // 设置提示框不显示
+                }
             }
             else
             {

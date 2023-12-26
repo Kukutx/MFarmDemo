@@ -1,12 +1,13 @@
-
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using MFarm.CropPlant;
 using MFarm.Inventory;
 using MFarm.Map;
-//using MFarm.Map;
-//此脚本来控制鼠标在不同功能下切换不同的状态图片
+
+/// <summary>
+/// 此脚本来控制鼠标在不同功能下切换不同的状态图片
+/// </summary>
 public class CursorManager : MonoBehaviour
 {
     public Sprite normal, tool, seed, item;    // 正常鼠标，使用工具的鼠标，使用种子的鼠标，使用物品的鼠标
@@ -30,8 +31,8 @@ public class CursorManager : MonoBehaviour
         cursorCanvas = GameObject.FindGameObjectWithTag("CursorCanvas").GetComponent<RectTransform>();
         cursorImage = cursorCanvas.GetChild(0).GetComponent<Image>();
         //拿到建造图标
-        //buildImage = cursorCanvas.GetChild(1).GetComponent<Image>();
-        //buildImage.gameObject.SetActive(false);
+        buildImage = cursorCanvas.GetChild(1).GetComponent<Image>();
+        buildImage.gameObject.SetActive(false);
         currentSprite = normal;         // 设置默认鼠标图标
         SetCursorImage(normal);
         mainCamera = Camera.main;//获取主摄像机
@@ -42,7 +43,7 @@ public class CursorManager : MonoBehaviour
         if (cursorCanvas == null)
             return;
         cursorImage.transform.position = Input.mousePosition;//图片始终跟随鼠标移动
-        if (!InteractWithUI() && cursorEnable)          // 判断是否与UI互动
+        if (cursorEnable)          //判断鼠标是否能启用，   也可以用这个 "!InteractWithUI() && cursorEnable"   判断是否与UI互动，这个判断鼠标范围如果超过一定的范围物品图片就会消失，可按需添加 (但是有鼠标闪烁)
         {
             SetCursorImage(currentSprite);
             CheckCursorValid();
@@ -51,8 +52,8 @@ public class CursorManager : MonoBehaviour
         else
         {
             SetCursorImage(normal);
-            //BugFix:
-            //buildImage.gameObject.SetActive(false);
+            //BugFix:    跟 UI 互动时，关闭建造的物品
+            buildImage.gameObject.SetActive(false);
         }
     }
 
@@ -93,7 +94,7 @@ public class CursorManager : MonoBehaviour
             currentItem = null;
             cursorEnable = false;
             currentSprite = normal;
-            //buildImage.gameObject.SetActive(false);
+            buildImage.gameObject.SetActive(false);
         }
         else
         {
@@ -116,9 +117,13 @@ public class CursorManager : MonoBehaviour
             //显示建造物品图片
             if (itemDetails.itemType == ItemType.Furniture)
             {
-                //buildImage.gameObject.SetActive(true);
+                buildImage.gameObject.SetActive(true);
                 buildImage.sprite = itemDetails.itemOnWorldSprite;
                 buildImage.SetNativeSize();
+            }
+            else
+            {
+                buildImage.gameObject.SetActive(false);
             }
         }
     }
@@ -142,7 +147,7 @@ public class CursorManager : MonoBehaviour
     {
         cursorPositionValid = true;//鼠标可以点按
         cursorImage.color = new Color(1, 1, 1, 1);
-        //buildImage.color = new Color(1, 1, 1, 0.5f);
+        buildImage.color = new Color(1, 1, 1, 0.5f);
     }
     /// <summary>
     /// 设置鼠标不可用
@@ -151,7 +156,7 @@ public class CursorManager : MonoBehaviour
     {
         cursorPositionValid = false;//鼠标不能点按
         cursorImage.color = new Color(1, 0, 0, 0.5f);
-        //buildImage.color = new Color(1, 0, 0, 0.5f);
+        buildImage.color = new Color(1, 0, 0, 0.5f);
     }
     #endregion
 
@@ -174,10 +179,9 @@ public class CursorManager : MonoBehaviour
     {
         mouseWorldPos = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, -mainCamera.transform.position.z));//屏幕坐标转化为世界坐标
         mouseGridPos = currentGrid.WorldToCell(mouseWorldPos);//世界坐标转化为网格坐标
-        //Debug.Log(mouseGridPos);
         var playerGridPos = currentGrid.WorldToCell(PlayerTransform.position);//拿到人物所在的网格坐标
         //建造图片跟随移动
-        //buildImage.rectTransform.position = Input.mousePosition;
+        buildImage.rectTransform.position = Input.mousePosition;
         //判断在使用范围之内
         if (Mathf.Abs(mouseGridPos.x - playerGridPos.x) > currentItem.itemUseRadius || Mathf.Abs(mouseGridPos.y - playerGridPos.y) > currentItem.itemUseRadius)
         {
@@ -230,17 +234,17 @@ public class CursorManager : MonoBehaviour
                         SetCursorInvalid();
                     }
                     break;
-                //case ItemType.ReapTool:
-                //    if (GridMapManager.Instance.HaveReapableItemsInRadius(mouseWorldPos, currentItem)) SetCursorValid(); else SetCursorInvalid();
-                //    break;
-                //case ItemType.Furniture:
-                //    buildImage.gameObject.SetActive(true);    //需要添加此命令
-                //    var bluePrintDetails = InventoryManager.Instance.bulePrintData.GetBulePrintDetailes(currentItem.itemID);
-                //    if (currentTile.canPlaceFurniturn && InventoryManager.Instance.CheckStock(currentItem.itemID) && !HaveFurnitureInRadius(bluePrintDetails))
-                //        SetCursorValid();
-                //    else
-                //        SetCursorInvalid();
-                //    break;
+                case ItemType.ReapTool:
+                    if (GridMapManager.Instance.HaveReapableItemsInRadius(mouseWorldPos, currentItem)) SetCursorValid(); else SetCursorInvalid();
+                    break;
+                case ItemType.Furniture:
+                    buildImage.gameObject.SetActive(true);    //需要添加此命令
+                    var bluePrintDetails = InventoryManager.Instance.bulePrintData.GetBulePrintDetailes(currentItem.itemID);
+                    if (currentTile.canPlaceFurniturn && InventoryManager.Instance.CheckStock(currentItem.itemID) && !HaveFurnitureInRadius(bluePrintDetails))
+                        SetCursorValid();
+                    else
+                        SetCursorInvalid();
+                    break;
             }
         }
         else
@@ -249,16 +253,21 @@ public class CursorManager : MonoBehaviour
         }
     }
 
-    //private bool HaveFurnitureInRadius(BulePrintDetailes bulePrintDetailes)
-    //{
-    //    var buildItem = bulePrintDetailes.buildPrefab;
-    //    Vector2 point = mouseWorldPos;
-    //    var size = buildItem.GetComponent<BoxCollider2D>().size;
-    //    var otherColl = Physics2D.OverlapBox(point, size, 0);
-    //    if (otherColl != null)
-    //        return otherColl.GetComponent<Furniture>();
-    //    return false;
-    //}
+    /// <summary>
+    /// 如果在半径范围内有家具，判断周围是否有其他家具如果有就不能建造
+    /// </summary>
+    /// <param name="bulePrintDetailes"></param>
+    /// <returns></returns>
+    private bool HaveFurnitureInRadius(BulePrintDetailes bulePrintDetailes)
+    {
+        var buildItem = bulePrintDetailes.buildPrefab;      // 要建造的东西
+        Vector2 point = mouseWorldPos;                  // 获得要建造的东西的点，用于判断位置
+        var size = buildItem.GetComponent<BoxCollider2D>().size;        // 东西的碰撞体大小
+        var otherColl = Physics2D.OverlapBox(point, size, 0);       // 多大的范围之内，Physics2D这个能检测到，这个函数通常用于检测玩家的移动路径是否存在障碍物，或者检测玩家是否与某个特定的物体发生碰撞。
+        if (otherColl != null)          // 判断范围内是否没有家具
+            return otherColl.GetComponent<Furniture>();
+        return false;
+    }
 
     /// <summary>
     /// 是否与UI互动

@@ -10,31 +10,36 @@ namespace MFarm.Inventory
     [RequireComponent(typeof(SlotUI))]//确保对象身上有SloUI组件,才能挂载本脚本
     public class ActionBarButton : MonoBehaviour
     {
-        public KeyCode key;
-        private SlotUI slotUI;
-        private bool canUse;
+        public KeyCode key;             // 按键
+        private SlotUI slotUI;          // 物品栏格子
+        private bool canUse;            // 但游戏暂停的时候禁止使用物品栏 ，为了避免交易的时候输入交易数量也会影响到物品栏
+
         private void Awake()
         {
             slotUI = GetComponent<SlotUI>();
         }
 
-        //private void OnEnable()
-        //{
-        //    EventHandler.UpdateGameStateEvent += OnUpdateGameStateEvent;
-        //}
-        //private void OnDisable()
-        //{
-        //    EventHandler.UpdateGameStateEvent -= OnUpdateGameStateEvent;
-        //}
+        private void OnEnable()
+        {
+            EventHandler.UpdateGameStateEvent += OnUpdateGameStateEvent;
+        }
+        private void OnDisable()
+        {
+            EventHandler.UpdateGameStateEvent -= OnUpdateGameStateEvent;
+        }
 
-        //private void OnUpdateGameStateEvent(GameState gameState)
-        //{
-        //    canUse = gameState == GameState.Gameplay;
-        //}
+        /// <summary>
+        /// 更新游戏状态
+        /// </summary>
+        /// <param name="gameState"></param>
+        private void OnUpdateGameStateEvent(GameState gameState)
+        {
+            canUse = gameState == GameState.Gameplay;
+        }
 
         private void Update()
         {
-            if (Input.GetKeyDown(key) /*&& canUse*/)
+            if (Input.GetKeyDown(key) && canUse)
             {
                 if (slotUI.itemDetails != null)//只有格子中有物品才能用键盘快捷键选择
                 {

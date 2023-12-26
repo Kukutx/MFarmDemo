@@ -3,60 +3,57 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityGame.Utilities.Attribute;
-//using MFarm.Save;
+using MFarm.Save;
 namespace MFarm.Transition
 {
-    public class TransitionManager :Singleton<TransitionManager>/*,ISaveable*/
+    public class TransitionManager :Singleton<TransitionManager>,ISaveable
     {
         [SceneName]//自己编写的Unity辅助功能标记(用来更方便识别是不是我需要调用的，其实可有可无)，可以注释，使用后可能会覆盖原有的UI样式
         public string startSceneName = string.Empty;            // 初始场景
         private CanvasGroup fadeCanvasGroup;        // 场景切换淡入淡出
         private bool isFade;//判断场景切换阿尔法加载是否完成
 
-        //public string GUID => GetComponent<DataGUID>().guid;
-        //protected override void Awake()
-        //{
-        //    base.Awake();
-        //    SceneManager.LoadScene("UI", LoadSceneMode.Additive);
-        //}
-        //// 未来版本
-        //private void Start()
-        //{
-        //    //ISaveable saveable = this;
-        //    //saveable.RegisterSaveable();
-        //    fadeCanvasGroup = FindObjectOfType<CanvasGroup>();
-        //}
+        public string GUID => GetComponent<DataGUID>().guid;  // 生成唯一标识码
 
-        private IEnumerator Start()                // 以后要删除的
+        protected override void Awake()
         {
+            base.Awake();
+            SceneManager.LoadScene("UI", LoadSceneMode.Additive);       // 最开始的时候加载UI的scena 避免打包的时候没有UI
+        }
+
+        private void Start()
+        {
+            ISaveable saveable = this;
+            saveable.RegisterSaveable();
             fadeCanvasGroup = FindObjectOfType<CanvasGroup>();
-            yield return LoadSceneSetActive(startSceneName);
-            EventHandler.CallAfterSceneLoadedEvent();
         }
 
         private void OnEnable()
         {
             EventHandler.TransitionEvent += OnTransitionEvent;
-            //EventHandler.StartNewGameEvent += OnStartNewGameEvent;
-            //EventHandler.EndGameEvent += OnEndGameEvent;
+            EventHandler.StartNewGameEvent += OnStartNewGameEvent;
+            EventHandler.EndGameEvent += OnEndGameEvent;
         }
 
         private void OnDisable()
         {
             EventHandler.TransitionEvent -= OnTransitionEvent;
-            //EventHandler.StartNewGameEvent -= OnStartNewGameEvent;
-            //EventHandler.EndGameEvent -= OnEndGameEvent;
+            EventHandler.StartNewGameEvent -= OnStartNewGameEvent;
+            EventHandler.EndGameEvent -= OnEndGameEvent;
         }
 
-        //private void OnEndGameEvent()
-        //{
-        //    StartCoroutine(UnloadScene());
-        //}
+        /// <summary>
+        /// 结束游戏，然后卸载游戏
+        /// </summary>
+        private void OnEndGameEvent()
+        {
+            StartCoroutine(UnloadScene());
+        }
 
-        //private void OnStartNewGameEvent(int index)
-        //{
-        //    StartCoroutine(LoadSaveDataScene(startSceneName)); // 初始化场景
-        //}
+        private void OnStartNewGameEvent(int index)
+        {
+            StartCoroutine(LoadSaveDataScene(startSceneName)); // 初始化场景
+        }
 
         /// <summary>
         /// 传送场景事件
@@ -119,39 +116,56 @@ namespace MFarm.Transition
             isFade = false;
         }
 
-        //private IEnumerator LoadSaveDataScene(string sceneName)
-        //{
-        //    yield return Fade(1f);
-        //    if (SceneManager.GetActiveScene().name != "PersistentScene")//在游戏过程中加载另外的游戏进度
-        //    {
-        //        EventHandler.CallBeforeSceneUnloadEvent();
-        //        yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
-        //    }
-        //    yield return LoadSceneSetActive(sceneName);
-        //    EventHandler.CallAfterSceneLoadedEvent();
-        //    yield return Fade(0);
-        //}
+        /// <summary>
+        /// 加载指定的场景
+        /// </summary>
+        /// <param name="sceneName"></param>
+        /// <returns></returns>
+        private IEnumerator LoadSaveDataScene(string sceneName)
+        {
+            yield return Fade(1f);
+            if (SceneManager.GetActiveScene().name != "PersistentScene")//在游戏过程中,加载另外的游戏进度
+            {
+                EventHandler.CallBeforeSceneUnloadEvent();
+                yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+            }
+            yield return LoadSceneSetActive(sceneName);
+            EventHandler.CallAfterSceneLoadedEvent();
+            yield return Fade(0);
+        }
 
-        //private IEnumerator UnloadScene()
-        //{
-        //    EventHandler.CallBeforeSceneUnloadEvent();
-        //    yield return Fade(1f);
-        //    yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
-        //    yield return Fade(0);
-        //}
+        /// <summary>
+        /// 卸载场景，附带个过场动画
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator UnloadScene()
+        {
+            EventHandler.CallBeforeSceneUnloadEvent();
+            yield return Fade(1f);          // 过场动画
+            yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+            yield return Fade(0);
+        }
 
-        //public GameSaveData GenerateSaveData()
-        //{
-        //    GameSaveData saveData = new GameSaveData();
-        //    saveData.dataSceneName = SceneManager.GetActiveScene().name;
-        //    return saveData;
-        //}
+        /// <summary>
+        /// 生成保存数据
+        /// </summary>
+        /// <returns></returns>
+        public GameSaveData GenerateSaveData()
+        {
+            GameSaveData saveData = new GameSaveData();
+            saveData.dataSceneName = SceneManager.GetActiveScene().name;
+            return saveData;
+        }
 
-        //public void RestoreData(GameSaveData saveDate)
-        //{
-        //    //加载游戏进度场景
-        //    StartCoroutine(LoadSaveDataScene(saveDate.dataSceneName));
-        //}
+        /// <summary>
+        /// 恢复数据
+        /// </summary>
+        /// <param name="saveDate"></param>
+        public void RestoreData(GameSaveData saveDate)
+        {
+            //加载游戏进度场景
+            StartCoroutine(LoadSaveDataScene(saveDate.dataSceneName));
+        }
     }
 }
 

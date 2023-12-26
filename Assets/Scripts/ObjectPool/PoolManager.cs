@@ -23,13 +23,13 @@ public class PoolManager : MonoBehaviour
     {
         //注册播放粒子效果委托事件
         EventHandler.ParticaleEffectEvent += OnParticaleEffectEvent;
-        //EventHandler.InitSoundEffect += InitSoundEffect;
+        EventHandler.InitSoundEffect += InitSoundEffect;
     }
 
     private void OnDisable()
     {
         EventHandler.ParticaleEffectEvent -= OnParticaleEffectEvent;
-        //EventHandler.InitSoundEffect -= InitSoundEffect;
+        EventHandler.InitSoundEffect -= InitSoundEffect;
     }
 
     /// <summary>
@@ -82,19 +82,40 @@ public class PoolManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         pool.Release(obj);//Unity对象池系统自带的释放对象函数
     }
-/*    private void InitSoundEffect(SoundDetails soundDetails)
+
+
+
+#if DEPRECATED // 这个是使用CreatPool() 的音频创建对象池方法但是，处于某些问题不能使用所以下面是重写的传统方法
+    /// <summary>
+    /// 初始化音效
+    /// </summary>
+    /// <param name="soundDetails"></param>
+    private void InitSoundEffect(SoundDetails soundDetails)
     {
         ObjectPool<GameObject> pool = poolEffectList[4];
         var obj = pool.Get();
         obj.GetComponent<Sound>().SetSound(soundDetails);
         StartCoroutine(DisableSound(pool, obj, soundDetails));
     }
-    private IEnumerator DisableSound(ObjectPool<GameObject> pool,GameObject obj,SoundDetails soundDetails)
+
+    /// <summary>
+    /// 协程，等待音效播放完成后，将音效对象释放回对象池
+    /// </summary>
+    /// <param name="pool">对象池</param>
+    /// <param name="obj">音效对象</param>
+    /// <param name="soundDetails">音效详情</param>
+    /// <returns>协程</returns>
+    private IEnumerator DisableSound(ObjectPool<GameObject> pool, GameObject obj, SoundDetails soundDetails)
     {
         yield return new WaitForSeconds(soundDetails.soundClip.length);
         pool.Release(obj);
-    }*/
-    //传统创建对象池的方式
+    }
+
+#endif
+
+    /// <summary>
+    /// 传统创建对象池的方式
+    /// </summary>
     private void CreateSoundPool()//创建音效对象池
     {
         var parent = new GameObject(poolPrefabs[4].name).transform;
@@ -118,14 +139,21 @@ public class PoolManager : MonoBehaviour
         return soundQueue.Dequeue();//返回队列中先进的特效(队列遵循先进先出规则)
     }
 
-    //private void InitSoundEffect(SoundDetails soundDetails)
-    //{
-    //    var obj = GetPoolObject();
-    //    obj.GetComponent<Sound>().SetSound(soundDetails);
-    //    obj.SetActive(true);
-    //    StartCoroutine(DisableSound(obj, soundDetails.soundClip.length));   
-    //}
+    /// <summary>
+    /// 初始化音效
+    /// </summary>
+    /// <param name="soundDetails"></param>
+    private void InitSoundEffect(SoundDetails soundDetails)
+    {
+        var obj = GetPoolObject();
+        obj.GetComponent<Sound>().SetSound(soundDetails);
+        obj.SetActive(true);
+        StartCoroutine(DisableSound(obj, soundDetails.soundClip.length));
+    }
 
+    /// <summary>
+    /// 协程，等待音效播放完成后，将音效对象释放回对象池
+    /// </summary>
     private IEnumerator DisableSound(GameObject obj,float duration)
     {
         yield return new WaitForSeconds(duration);

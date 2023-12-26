@@ -49,10 +49,10 @@ public class Crop : MonoBehaviour
             }
 
             ////播放声音
-            //if (cropDetails.soundEffect != SoundName.none)
-            //{
-            //    EventHandler.CallPlaySoundEvent(cropDetails.soundEffect);
-            //}
+            if (cropDetails.soundEffect != SoundName.none)
+            {
+                EventHandler.CallPlaySoundEvent(cropDetails.soundEffect);
+            }
         }
         if (harvestActionCount >= requireActionCount)
         {
@@ -71,7 +71,7 @@ public class Crop : MonoBehaviour
                 {
                     anim.SetTrigger("FallingLeft");
                 }
-                //EventHandler.CallPlaySoundEvent(SoundName.TreeFalling);
+                EventHandler.CallPlaySoundEvent(SoundName.TreeFalling);
                 StartCoroutine(HarvestAfterAnimator());
             }
         }

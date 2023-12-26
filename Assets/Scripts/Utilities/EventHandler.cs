@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-//using MFarm.Dialogue;
+using MFarm.Dialogue;
 
 /// <summary>
 /// 事件中心，用来注册和调用事件的中心，创建一个脚本来控制游戏中所有的事件，静态的，全局的
@@ -118,72 +118,96 @@ public static class EventHandler
         GenerateCropEvent?.Invoke();
     }
 
-    //public static event Action<DialoguePiece> ShowDialogueEvent;
-    //public static void CallShowDialogueEvent(DialoguePiece piece)
-    //{
-    //    ShowDialogueEvent?.Invoke(piece);
-    //}
+    public static event Action<DialoguePiece> ShowDialogueEvent;
+    public static void CallShowDialogueEvent(DialoguePiece piece)       // 是否显示对话事件
+    {
+        ShowDialogueEvent?.Invoke(piece);
+    }
 
-    ////商店开启事件
-    //public static event Action<SlotType, InventoryBag_SO> BaseBagOpenEvent;//调用这个委托事件,商店就会开启
-    //public static void CallBaseBagOpenEvent(SlotType slotType, InventoryBag_SO bag_SO)
-    //{
-    //    BaseBagOpenEvent?.Invoke(slotType, bag_SO);
-    //}
+    /// <summary>
+    /// 商店开启事件
+    /// </summary>
+    public static event Action<SlotType, InventoryBag_SO> BaseBagOpenEvent;//调用这个委托事件,商店就会开启
+    public static void CallBaseBagOpenEvent(SlotType slotType, InventoryBag_SO bag_SO)
+    {
+        BaseBagOpenEvent?.Invoke(slotType, bag_SO);
+    }
 
-    ////商店关闭事件
-    //public static event Action<SlotType, InventoryBag_SO> BaseBagCloseEvent;//调用这个委托事件,商店就会关闭
-    //public static void CallBaseBagCloseEvent(SlotType slotType, InventoryBag_SO bag_SO)
-    //{
-    //    BaseBagCloseEvent?.Invoke(slotType, bag_SO);
-    //}
+    /// <summary>
+    /// 商店关闭事件
+    /// </summary>
+    public static event Action<SlotType, InventoryBag_SO> BaseBagCloseEvent;//调用这个委托事件,商店就会关闭
+    public static void CallBaseBagCloseEvent(SlotType slotType, InventoryBag_SO bag_SO)
+    {
+        BaseBagCloseEvent?.Invoke(slotType, bag_SO);
+    }
 
-    //更新游戏当前状态委托事件
-    public static event Action<GameState> UpdateGameStateEvent;//游戏有进行中状态和暂停状态
+    /// <summary>
+    /// 更新游戏当前状态委托事件
+    /// </summary>
+    public static event Action<GameState> UpdateGameStateEvent;//游戏有进行中状态和暂停状态  ,(进行中状态如正在交易中)
     public static void CallUpdateGameStateEvent(GameState gameState)
     {
         UpdateGameStateEvent?.Invoke(gameState);
     }
 
-    //public static event Action<ItemDetails, bool> ShowTradeUI;
-    //public static void CallShowTradeUI(ItemDetails item, bool isSell)
-    //{
-    //    ShowTradeUI?.Invoke(item, isSell);
-    //}
+    /// <summary>
+    /// 显示交易用户界面 （交易物品的详情界面）
+    /// </summary>
+    public static event Action<ItemDetails, bool> ShowTradeUI;
+    public static void CallShowTradeUI(ItemDetails item, bool isSell)
+    {
+        ShowTradeUI?.Invoke(item, isSell);
+    }
 
-    ////建造
-    //public static event Action<int, Vector3> BuildFurnitureEvent;
-    //public static void CallBuildFurnitureEvent(int ID, Vector3 pos)
-    //{
-    //    BuildFurnitureEvent?.Invoke(ID, pos);
-    //}
+    /// <summary>
+    /// 建造家具或者其他
+    /// </summary>
+    public static event Action<int, Vector3> BuildFurnitureEvent;
+    public static void CallBuildFurnitureEvent(int ID, Vector3 pos)
+    {
+        BuildFurnitureEvent?.Invoke(ID, pos);
+    }
 
-    ////灯光
-    //public static event Action<Season, LightShift, float> LightShiftChangeEvent;
-    //public static void CallLightShiftChangeEvent(Season season, LightShift lightShift, float timeDifference)
-    //{
-    //    LightShiftChangeEvent?.Invoke(season, lightShift, timeDifference);
-    //}
+    /// <summary>
+    /// 灯光
+    /// </summary>
+    public static event Action<Season, LightShift, float> LightShiftChangeEvent;
+    public static void CallLightShiftChangeEvent(Season season, LightShift lightShift, float timeDifference)
+    {
+        LightShiftChangeEvent?.Invoke(season, lightShift, timeDifference);
+    }
 
-    ////音效
-    //public static event Action<SoundDetails> InitSoundEffect;
-    //public static void CallInitSoundEffect(SoundDetails soundDetails)
-    //{
-    //    InitSoundEffect?.Invoke(soundDetails);
-    //}
+    /// <summary>
+    /// 初始化音效
+    /// </summary>
+    public static event Action<SoundDetails> InitSoundEffect;
+    public static void CallInitSoundEffect(SoundDetails soundDetails)
+    {
+        InitSoundEffect?.Invoke(soundDetails);
+    }
 
-    //public static event Action<SoundName> PlaySoundEvent;
-    //public static void CallPlaySoundEvent(SoundName soundName)
-    //{
-    //    PlaySoundEvent?.Invoke(soundName);
-    //}
+    /// <summary>
+    /// 播放音效事件
+    /// </summary>
+    public static event Action<SoundName> PlaySoundEvent;
+    public static void CallPlaySoundEvent(SoundName soundName)
+    {
+        PlaySoundEvent?.Invoke(soundName);
+    }
 
+    /// <summary>
+    /// 开一个新游戏进度事件
+    /// </summary>
     public static event Action<int> StartNewGameEvent;
     public static void CallStartNewGameEvent(int index)
     {
         StartNewGameEvent?.Invoke(index);
     }
 
+    /// <summary>
+    /// 结束游戏的事件
+    /// </summary>
     public static event Action EndGameEvent;
     public static void CallEndGameEvent()
     {

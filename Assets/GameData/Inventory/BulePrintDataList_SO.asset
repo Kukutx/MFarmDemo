@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 726c05b08093b6e42b1b4a3c9502174f, type: 3}
+  m_Name: BulePrintDataList_SO
+  m_EditorClassIdentifier: 
+  bulePrintDataList:
+  - ID: 1028
+    resourceItem:
+    - itemID: 1007
+      itemAmount: 20
+    buildPrefab: {fileID: 4915563543990750445, guid: df1e9dde2c9070740ab870352e4a0b55, type: 3}
+  - ID: 1029
+    resourceItem:
+    - itemID: 1007
+      itemAmount: 20
+    - itemID: 1017
+      itemAmount: 20
+    buildPrefab: {fileID: 3328147207752737743, guid: 7373a18a32e90d74a8f5e89663f0102a, type: 3}

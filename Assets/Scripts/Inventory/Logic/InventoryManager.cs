@@ -1,79 +1,82 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//using MFarm.Save;
-//using static UnityEditor.Progress;
-using UnityEngine.UIElements;
+using MFarm.Save;
 
 namespace MFarm.Inventory //手动添加一个命名空间，别的类不使用该命名空间就不可以调用到该命名空间中的变量或者函数，达到保护作用
 {
     /// <summary>
     /// 物品数据管理
     /// </summary>
-    public class InventoryManager : Singleton<InventoryManager>
-        //, ISaveable//数据管理类
+    public class InventoryManager : Singleton<InventoryManager>, ISaveable//数据管理类
     {
         [Header("物品数据")]
         public ItemDataList_SO itemDataList_SO;//拿到数据库
-        //[Header("建造蓝图")]
-        //public BluePrintDataList_SO bulePrintData;
+        [Header("建造蓝图")]
+        public BluePrintDataList_SO bulePrintData;  // 建造蓝图的数据库
         [Header("背包数据")]
-        //public InventoryBag_SO playerBagTemp;
+        public InventoryBag_SO playerBagTemp;       // 玩家背包的模板，确保玩家开启新游戏的时候能得到一个全新的背包数据
         public InventoryBag_SO PlayerBag;           // 玩家背包
-        //private InventoryBag_SO currentBoxBag;//当前打开的箱子的数据库
-        //[Header("交易")]
-        //public int playerMoney;
-        //private Dictionary<string, List<InventoryItem>> boxDataDict = new Dictionary<string, List<InventoryItem>>();
-        //public int BoxDataAmount => boxDataDict.Count;
+        private InventoryBag_SO currentBoxBag;      //当前打开的箱子的数据库
+        [Header("交易")]
+        public int playerMoney;       // 代表玩家的金钱
+        private Dictionary<string, List<InventoryItem>> boxDataDict = new Dictionary<string, List<InventoryItem>>();    // 保存箱子里的数据，这样切换场景的时候数据不会被刷掉
+        public int BoxDataAmount => boxDataDict.Count;      // 盒子数量
 
-        //public string GUID => GetComponent<DataGUID>().guid;
+        public string GUID => GetComponent<DataGUID>().guid;    // 生成唯一标识码
 
         private void OnEnable()
         {
             EventHandler.DropItemEvent += OnDropItemEvent;
             EventHandler.HarvestAtPlayerPostion += OnHarvestAtPlayerPostion;
-            //EventHandler.BuildFurnitureEvent += OnBuildFurnitureEvent;
-            //EventHandler.BaseBagOpenEvent += OnBaseBagOpenEvent;
-            //EventHandler.StartNewGameEvent += OnStartNewGameEvent;
+            EventHandler.BuildFurnitureEvent += OnBuildFurnitureEvent;
+            EventHandler.BaseBagOpenEvent += OnBaseBagOpenEvent;
+            EventHandler.StartNewGameEvent += OnStartNewGameEvent;
         }
         private void OnDisable()
         {
             EventHandler.DropItemEvent -= OnDropItemEvent;
             EventHandler.HarvestAtPlayerPostion -= OnHarvestAtPlayerPostion;
-            //EventHandler.BuildFurnitureEvent -= OnBuildFurnitureEvent;
-            //EventHandler.BaseBagOpenEvent -= OnBaseBagOpenEvent;
-            //EventHandler.StartNewGameEvent -= OnStartNewGameEvent;
+            EventHandler.BuildFurnitureEvent -= OnBuildFurnitureEvent;
+            EventHandler.BaseBagOpenEvent -= OnBaseBagOpenEvent;
+            EventHandler.StartNewGameEvent -= OnStartNewGameEvent;
         }
 
         private void Start()
         {
-            EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);//游戏一开始就调用一下更新UI的委托事件
-            //ISaveable saveable = this;
-            //saveable.RegisterSaveable();
+            //EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);//游戏一开始就调用一下更新UI的委托事件
+           
+            ISaveable saveable = this;
+            saveable.RegisterSaveable();
         }
 
-        //private void OnStartNewGameEvent(int index)
-        //{
-        //    PlayerBag = Instantiate(playerBagTemp);
-        //    playerMoney = Settings.playerStartMoney;
-        //    boxDataDict.Clear();
-        //    EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);
-        //}
+        private void OnStartNewGameEvent(int index)
+        {
+            PlayerBag = Instantiate(playerBagTemp);
+            playerMoney = Settings.playerStartMoney;
+            boxDataDict.Clear();
+            EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);
+        }
 
-        //private void OnBaseBagOpenEvent(SlotType slotType, InventoryBag_SO bag_SO)
-        //{
-        //    currentBoxBag = bag_SO;
-        //}
+        /// <summary>
+        /// 通用箱子或背包被打开的事件
+        /// </summary>
+        /// <param name="slotType"></param>
+        /// <param name="bag_SO"></param>
+        private void OnBaseBagOpenEvent(SlotType slotType, InventoryBag_SO bag_SO)
+        {
+            currentBoxBag = bag_SO;
+        }
 
-        //private void OnBuildFurnitureEvent(int ID, Vector3 mousePos)
-        //{
-        //    RemoveItem(ID, 1);
-        //    BulePrintDetailes bulePrint = bulePrintData.GetBulePrintDetailes(ID);
-        //    foreach (var item in bulePrint.resourceItem)
-        //    {
-        //        RemoveItem(item.itemID, item.itemAmount);
-        //    }
-        //}
+        private void OnBuildFurnitureEvent(int ID, Vector3 mousePos)
+        {
+            RemoveItem(ID, 1);
+            BulePrintDetailes bulePrint = bulePrintData.GetBulePrintDetailes(ID);
+            foreach (var item in bulePrint.resourceItem)
+            {
+                RemoveItem(item.itemID, item.itemAmount);
+            }
+        }
 
         private void OnHarvestAtPlayerPostion(int ID)
         {
@@ -221,163 +224,175 @@ namespace MFarm.Inventory //手动添加一个命名空间，别的类不使用�
             EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);//刷新一下背包UI
         }
 
-        //    /// <summary>
-        //    /// 跨背包交换数据
-        //    /// </summary>
-        //    /// <param name="locationFrom"></param>
-        //    /// <param name="fromIndex"></param>
-        //    /// <param name="locationTarget"></param>
-        //    /// <param name="targetIndex"></param>
-        //    public void SwapItem(InventoryLocation locationFrom, int fromIndex, InventoryLocation locationTarget, int targetIndex)
-        //    {
-        //        var currentList = GetItemList(locationFrom);
-        //        var targetList = GetItemList(locationTarget);
-        //        InventoryItem currentItem = currentList[fromIndex];
-        //        if (targetIndex < targetList.Count)
-        //        {
-        //            InventoryItem targetItem = targetList[targetIndex];
-        //            if (targetItem.itemID != 0 && currentItem.itemID != targetItem.itemID)//有不相同的两个物品
-        //            {
-        //                currentList[fromIndex] = targetItem;
-        //                targetList[targetIndex] = currentItem;
-        //            }
-        //            else if (currentItem.itemID == targetItem.itemID)//相同的两个物品
-        //            {
-        //                targetItem.itemAmount += currentItem.itemAmount;
-        //                targetList[targetIndex] = targetItem;
-        //                currentList[fromIndex] = new InventoryItem();
-        //            }
-        //            else//目标空格子
-        //            {
-        //                targetList[targetIndex] = currentItem;
-        //                currentList[fromIndex] = new InventoryItem();
-        //            }
-        //            EventHandler.CallUpdateInventoryUI(locationFrom, currentList);
-        //            EventHandler.CallUpdateInventoryUI(locationTarget, targetList);
-        //        }
-        //    }
-        //    /// <summary>
-        //    /// 根据位置返回背包的数据列表
-        //    /// </summary>
-        //    /// <param name="location"></param>
-        //    /// <returns></returns>
-        //    private List<InventoryItem> GetItemList(InventoryLocation location)
-        //    {
-        //        return location switch
-        //        {
-        //            InventoryLocation.Player => PlayerBag.itemList,
-        //            InventoryLocation.Box => currentBoxBag.itemList,
-        //            _ => null,
-        //        };
-        //    }
+        /// <summary>
+        /// 跨背包交换数据
+        /// </summary>
+        /// <param name="locationFrom"></param>
+        /// <param name="fromIndex"></param>
+        /// <param name="locationTarget"></param>
+        /// <param name="targetIndex"></param>
+        public void SwapItem(InventoryLocation locationFrom, int fromIndex, InventoryLocation locationTarget, int targetIndex)
+        {
+            var currentList = GetItemList(locationFrom);
+            var targetList = GetItemList(locationTarget);
+            InventoryItem currentItem = currentList[fromIndex];
+            if (targetIndex < targetList.Count)
+            {
+                InventoryItem targetItem = targetList[targetIndex];
+                if (targetItem.itemID != 0 && currentItem.itemID != targetItem.itemID)//有不相同的两个物品
+                {
+                    currentList[fromIndex] = targetItem;
+                    targetList[targetIndex] = currentItem;
+                }
+                else if (currentItem.itemID == targetItem.itemID)//相同的两个物品
+                {
+                    targetItem.itemAmount += currentItem.itemAmount;
+                    targetList[targetIndex] = targetItem;
+                    currentList[fromIndex] = new InventoryItem();
+                }
+                else//目标空格子
+                {
+                    targetList[targetIndex] = currentItem;
+                    currentList[fromIndex] = new InventoryItem();
+                }
+                EventHandler.CallUpdateInventoryUI(locationFrom, currentList);
+                EventHandler.CallUpdateInventoryUI(locationTarget, targetList);
+            }
+        }
 
-        //    /// <summary>
-        //    /// 检查建造资源物品库存
-        //    /// </summary>
-        //    /// <param name="ID">图纸ID</param>
-        //    /// <returns></returns>
-        //    public bool CheckStock(int ID)
-        //    {
-        //        var bulePrintDetails = bulePrintData.GetBulePrintDetailes(ID);
-        //        foreach (var resourceItem in bulePrintDetails.resourceItem)
-        //        {
-        //            var itemStock = PlayerBag.GetInventoryItem(resourceItem.itemID);
-        //            if (itemStock.itemAmount >= resourceItem.itemAmount)
-        //            {
-        //                continue;
-        //            }
-        //            else
-        //            {
-        //                return false;
-        //            }
-        //        }
-        //        return true;
-        //    }
-        //    /// <summary>
-        //    /// 交易物品
-        //    /// </summary>
-        //    /// <param name="itemDetails">物品信息</param>
-        //    /// <param name="amount">交易数量</param>
-        //    /// <param name="isSellTrade">是否卖东西</param>
-        //    public void TradeItem(ItemDetails itemDetails, int amount, bool isSellTrade)
-        //    {
-        //        int cost = itemDetails.itemPrice * amount;//总共花费多少金币
-        //        //获得物品的背包位置
-        //        int index = GetItemIndexInBag(itemDetails.itemID);
-        //        if (isSellTrade)//卖
-        //        {
-        //            if (PlayerBag.itemList[index].itemAmount >= amount)
-        //            {
-        //                RemoveItem(itemDetails.itemID, amount);
-        //                //卖出总价
-        //                cost = (int)(cost * itemDetails.sellPercentage);
-        //                playerMoney += cost;
-        //            }
-        //        }
-        //        else if (playerMoney - cost >= 0)
-        //        {
-        //            if (CheckBagCapacity())
-        //            {
-        //                AddItemAtIndex(itemDetails.itemID, index, amount);
-        //            }
-        //            playerMoney -= cost;
-        //        }
-        //        //刷新UI
-        //        EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);
-        //    }
-        //    /// <summary>
-        //    /// 查找箱子数据
-        //    /// </summary>
-        //    /// <param name="key"></param>
-        //    /// <returns></returns>
-        //    public List<InventoryItem> GetBoxDataList(string key)
-        //    {
-        //        if (boxDataDict.ContainsKey(key))
-        //        {
-        //            return boxDataDict[key];
-        //        }
-        //        return null;
-        //    }
-        //    /// <summary>
-        //    /// 加入箱子数据字典
-        //    /// </summary>
-        //    /// <param name="box"></param>
-        //    public void AddBoxDataDict(Box box)
-        //    {
-        //        var key = box.name + box.index;
-        //        if (!boxDataDict.ContainsKey(key))
-        //        {
-        //            boxDataDict.Add(key, box.boxBagData.itemList);
-        //        }
-        //    }
+        /// <summary>
+        /// 根据位置返回背包的数据列表
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        private List<InventoryItem> GetItemList(InventoryLocation location)
+        {
+            return location switch
+            {
+                InventoryLocation.Player => PlayerBag.itemList,
+                InventoryLocation.Box => currentBoxBag.itemList,
+                _ => null,
+            };
+        }
 
-        //    public GameSaveData GenerateSaveData()
-        //    {
-        //        GameSaveData saveData = new GameSaveData();
-        //        saveData.playerMoney = this.playerMoney;
-        //        saveData.inventoryDict = new Dictionary<string, List<InventoryItem>>();
-        //        saveData.inventoryDict.Add(PlayerBag.name, PlayerBag.itemList);
-        //        foreach (var item in boxDataDict)
-        //        {
-        //            saveData.inventoryDict.Add(item.Key, item.Value);
-        //        }
-        //        return saveData;
-        //    }
+        /// <summary>
+        /// 检查建造资源物品库存
+        /// </summary>
+        /// <param name="ID">图纸ID</param>
+        /// <returns></returns>
+        public bool CheckStock(int ID)
+        {
+            var bulePrintDetails = bulePrintData.GetBulePrintDetailes(ID);
+            foreach (var resourceItem in bulePrintDetails.resourceItem)
+            {
+                var itemStock = PlayerBag.GetInventoryItem(resourceItem.itemID);
+                if (itemStock.itemAmount >= resourceItem.itemAmount)
+                {
+                    continue;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
 
-        //    public void RestoreData(GameSaveData saveDate)
-        //    {
-        //        this.playerMoney = saveDate.playerMoney;
-        //        PlayerBag = Instantiate(playerBagTemp);
-        //        PlayerBag.itemList = saveDate.inventoryDict[PlayerBag.name];
-        //        foreach (var item in saveDate.inventoryDict)
-        //        {
-        //            if (boxDataDict.ContainsKey(item.Key))
-        //            {
-        //                boxDataDict[item.Key] = item.Value;
-        //            }
-        //        }
-        //        EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);//刷新一下UI
-        //    }
+        /// <summary>
+        /// 交易物品
+        /// </summary>
+        /// <param name="itemDetails">物品信息</param>
+        /// <param name="amount">交易数量</param>
+        /// <param name="isSellTrade">是否卖东西</param>
+        public void TradeItem(ItemDetails itemDetails, int amount, bool isSellTrade)
+        {
+            int cost = itemDetails.itemPrice * amount;//总共花费多少金币
+                                                      //获得物品的背包位置
+            int index = GetItemIndexInBag(itemDetails.itemID);      // 判断物品是否在背包当中
+            if (isSellTrade)//卖
+            {
+                if (PlayerBag.itemList[index].itemAmount >= amount)
+                {
+                    RemoveItem(itemDetails.itemID, amount);
+                    //卖出总价
+                    cost = (int)(cost * itemDetails.sellPercentage);
+                    playerMoney += cost;
+                }
+            }
+            else if (playerMoney - cost >= 0)           // 买
+            {
+                if (CheckBagCapacity())     // 判断背包的容量是否足够
+                {
+                    AddItemAtIndex(itemDetails.itemID, index, amount);
+                }
+                playerMoney -= cost;
+            }
+            //刷新UI
+            EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);
+        }
+
+        /// <summary>
+        /// 查找箱子数据
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public List<InventoryItem> GetBoxDataList(string key)
+        {
+            if (boxDataDict.ContainsKey(key))
+            {
+                return boxDataDict[key];
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 加入箱子数据字典
+        /// </summary>
+        /// <param name="box"></param>
+        public void AddBoxDataDict(Box box)
+        {
+            var key = box.name + box.index;
+            if (!boxDataDict.ContainsKey(key))
+            {
+                boxDataDict.Add(key, box.boxBagData.itemList);
+            }
+        }
+
+        /// <summary>
+        /// 生成保存数据
+        /// </summary>
+        /// <returns></returns>
+        public GameSaveData GenerateSaveData()
+        {
+            GameSaveData saveData = new GameSaveData();
+            saveData.playerMoney = this.playerMoney;
+            saveData.inventoryDict = new Dictionary<string, List<InventoryItem>>();
+            saveData.inventoryDict.Add(PlayerBag.name, PlayerBag.itemList);
+            foreach (var item in boxDataDict)
+            {
+                saveData.inventoryDict.Add(item.Key, item.Value);
+            }
+            return saveData;
+        }
+
+        /// <summary>
+        /// 恢复存档存储的对应数据，简称读取进度
+        /// </summary>
+        /// <param name="saveDate"></param>
+        public void RestoreData(GameSaveData saveDate)
+        {
+            this.playerMoney = saveDate.playerMoney;
+            PlayerBag = Instantiate(playerBagTemp);     // 给这个先初始化空背包，不然一开始PlayerBag是没有的，会报错
+            PlayerBag.itemList = saveDate.inventoryDict[PlayerBag.name];  // 然后从存档里获取背包里的数据并赋值
+            foreach (var item in saveDate.inventoryDict)
+            {
+                if (boxDataDict.ContainsKey(item.Key))
+                {
+                    boxDataDict[item.Key] = item.Value;
+                }
+            }
+            EventHandler.CallUpdateInventoryUI(InventoryLocation.Player, PlayerBag.itemList);//刷新一下UI
+        }
     }
 }
 

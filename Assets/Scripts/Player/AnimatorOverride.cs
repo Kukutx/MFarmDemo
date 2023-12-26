@@ -14,6 +14,7 @@ public class AnimatorOverride : MonoBehaviour
     public List<AnimatorType> animatorTypes;
     // 动画行为字典，这样可以通过名字来查找animator，这样方便animatorTypes的切换
     private Dictionary<string, Animator> animatorNameDict = new Dictionary<string, Animator>();
+   
     private void Awake()
     {
         animators = GetComponentsInChildren<Animator>();
@@ -22,6 +23,7 @@ public class AnimatorOverride : MonoBehaviour
             animatorNameDict.Add(anim.name, anim);
         }
     }
+
     private void OnEnable()//注册点击事件
     {
         EventHandler.ItemSelectedEvent += OnItemSelectedEvent; // 如果物品被玩家选中了

@@ -22,7 +22,7 @@ namespace MFarm.Inventory
         //物品信息
         public ItemDetails itemDetails;         // 获得物品信息
         public int itemAmount;                  // 物品数量
-        public InventoryLocation Location       //属性
+        public InventoryLocation Location       // 库存属性
         {
             get//可读
             {
@@ -127,7 +127,6 @@ namespace MFarm.Inventory
         public void OnEndDrag(PointerEventData eventData)
         {
             inventoryUI.dragItem.enabled = false;//拖拽结束,关闭图片
-            //Debug.Log(eventData.pointerCurrentRaycast.gameObject);
 
             if (eventData.pointerCurrentRaycast.gameObject != null)//拖拽物体停止的当前射线之下不为null
             {
@@ -141,23 +140,22 @@ namespace MFarm.Inventory
                 if (slotType == SlotType.Bag && targatSlot.slotType == SlotType.Bag)
                 {
                     InventoryManager.Instance.SwapItem(slotIndex, targetIndex);
+                } // 这块是用来拖拽交易的，拖拽物品达成交易目的
+                else if (slotType == SlotType.Shop && targatSlot.slotType == SlotType.Bag)//买
+                {
+                    EventHandler.CallShowTradeUI(itemDetails, false);
                 }
-                //else if (slotType == SlotType.Shop && targatSlot.slotType == SlotType.Bag)//买
-                //{
-                //    EventHandler.CallShowTradeUI(itemDetails, false);
-                //}
-                //else if (slotType == SlotType.Bag && targatSlot.slotType == SlotType.Shop)//卖
-                //{
-                //    EventHandler.CallShowTradeUI(itemDetails, true);
-                //}
-                //else if (slotType != SlotType.Shop && targatSlot.slotType != SlotType.Shop && slotType != targatSlot.slotType)
-                //{
-                //    //跨背包数据交换物品
-                //    InventoryManager.Instance.SwapItem(Location, slotIndex, targatSlot.Location, targatSlot.slotIndex);
-                //}
+                else if (slotType == SlotType.Bag && targatSlot.slotType == SlotType.Shop)//卖
+                {
+                    EventHandler.CallShowTradeUI(itemDetails, true);
+                }
+                else if (slotType != SlotType.Shop && targatSlot.slotType != SlotType.Shop && slotType != targatSlot.slotType)
+                {
+                    //跨背包数据交换物品
+                    InventoryManager.Instance.SwapItem(Location, slotIndex, targatSlot.Location, targatSlot.slotIndex);
+                }
 
-                //拖拽完成后关闭所有的高亮显示
-                inventoryUI.UpdateSlotHighlight(-1);
+                inventoryUI.UpdateSlotHighlight(-1);   //拖拽完成后关闭所有的高亮显示
             }
             //else//测试扔在地上,因为某些缺陷和问题这个只是用来当作测试
             //{
